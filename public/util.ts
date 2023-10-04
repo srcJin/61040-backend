@@ -78,13 +78,13 @@ const operations: operation[] = [
     fields: { id: "input" },
   },
   {
-    name: "ADD Create Profile",
+    name: "Create Profile",
     endpoint: "/api/profiles",
     method: "PATCH",
     fields: { nickname: "input", email: "input" },
   },
   {
-    name: "ADD Delete Profile",
+    name: "Delete Profile",
     endpoint: "/api/profiles/:id",
     method: "DELETE",
     fields: { id: "input" },
