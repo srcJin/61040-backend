@@ -2,8 +2,9 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Friend, Post, User, WebSession } from "./app";
+import { Post, Profile, Relationship, User, WebSession } from "./app";
 import { PostDoc, PostOptions } from "./concepts/post";
+import { ProfileDoc } from "./concepts/profile";
 import { UserDoc } from "./concepts/user";
 import { WebSessionDoc } from "./concepts/websession";
 import Responses from "./responses";
@@ -95,75 +96,196 @@ class Routes {
     return Post.delete(_id);
   }
 
-  // Friends routes
+  // // Friends routes
 
-  @Router.get("/friends")
-  async getFriends(session: WebSessionDoc) {
+  // @Router.get("/friends")
+  // async getFriends(session: WebSessionDoc) {
+  //   const user = WebSession.getUser(session);
+  //   return await User.idsToUsernames(await Friend.getFriends(user));
+  // }
+
+  // @Router.delete("/friends/:friend")
+  // async removeFriend(session: WebSessionDoc, friend: string) {
+  //   const user = WebSession.getUser(session);
+  //   const friendId = (await User.getUserByUsername(friend))._id;
+  //   return await Friend.removeFriend(user, friendId);
+  // }
+
+  // @Router.get("/friend/requests")
+  // async getRequests(session: WebSessionDoc) {
+  //   const user = WebSession.getUser(session);
+  //   return await Responses.friendRequests(await Friend.getRequests(user));
+  // }
+
+  // @Router.post("/friend/requests/:to")
+  // async sendFriendRequest(session: WebSessionDoc, to: string) {
+  //   const user = WebSession.getUser(session);
+  //   const toId = (await User.getUserByUsername(to))._id;
+  //   return await Friend.sendRequest(user, toId);
+  // }
+
+  // @Router.delete("/friend/requests/:to")
+  // async removeFriendRequest(session: WebSessionDoc, to: string) {
+  //   const user = WebSession.getUser(session);
+  //   const toId = (await User.getUserByUsername(to))._id;
+  //   return await Friend.removeRequest(user, toId);
+  // }
+
+  // @Router.put("/friend/accept/:from")
+  // async acceptFriendRequest(session: WebSessionDoc, from: string) {
+  //   const user = WebSession.getUser(session);
+  //   const fromId = (await User.getUserByUsername(from))._id;
+  //   return await Friend.acceptRequest(fromId, user);
+  // }
+
+  // @Router.put("/friend/reject/:from")
+  // async rejectFriendRequest(session: WebSessionDoc, from: string) {
+  //   const user = WebSession.getUser(session);
+  //   const fromId = (await User.getUserByUsername(from))._id;
+  //   return await Friend.rejectRequest(fromId, user);
+  // }
+
+  // Relationship routes, modified from Friend concept by adding partner relationship
+  // It is redundant at this moment. Will consult TA to make it apply to three states:
+  // Following, Friend, Partner
+
+  @Router.get("/relationships")
+  async getRelationships(session: WebSessionDoc) {
     const user = WebSession.getUser(session);
-    return await User.idsToUsernames(await Friend.getFriends(user));
+    // return await User.idsToUsernames(await Relationship.getRelationships(user));
+    return await Relationship.getRelationships(user);
   }
 
-  @Router.delete("/friends/:friend")
+  @Router.delete("/relationships/:friend")
   async removeFriend(session: WebSessionDoc, friend: string) {
     const user = WebSession.getUser(session);
     const friendId = (await User.getUserByUsername(friend))._id;
-    return await Friend.removeFriend(user, friendId);
+    return await Relationship.removeFriend(user, friendId);
   }
 
-  @Router.get("/friend/requests")
+  @Router.delete("/relationships/:partner")
+  async removePartner(session: WebSessionDoc, partner: string) {
+    const user = WebSession.getUser(session);
+    const partnerId = (await User.getUserByUsername(partner))._id;
+    return await Relationship.removePartner(user, partnerId);
+  }
+
+  @Router.get("/relationships/requests")
   async getRequests(session: WebSessionDoc) {
     const user = WebSession.getUser(session);
-    return await Responses.friendRequests(await Friend.getRequests(user));
+    // Retrieve both friend and partner requests
+    const friendRequests = await Relationship.getFriendRequests(user);
+    const partnerRequests = await Relationship.getPartnerRequests(user);
+    // Consolidate the results
+    return {
+      friendRequests: Responses.friendRequests(friendRequests),
+      partnerRequests: Responses.partnerRequests(partnerRequests),
+    };
   }
 
-  @Router.post("/friend/requests/:to")
+  @Router.post("/relationships/friend/requests/:to")
   async sendFriendRequest(session: WebSessionDoc, to: string) {
     const user = WebSession.getUser(session);
     const toId = (await User.getUserByUsername(to))._id;
-    return await Friend.sendRequest(user, toId);
+    return await Relationship.sendFriendRequest(user, toId);
   }
 
-  @Router.delete("/friend/requests/:to")
+  @Router.post("/relationships/partner/requests/:to")
+  async sendPartnerRequest(session: WebSessionDoc, to: string) {
+    const user = WebSession.getUser(session);
+    const toId = (await User.getUserByUsername(to))._id;
+    return await Relationship.sendPartnerRequest(user, toId);
+  }
+
+  // will try to merge them into one delete route, remove both friend and partner requests
+  @Router.delete("/relationships/requests/:to")
   async removeFriendRequest(session: WebSessionDoc, to: string) {
     const user = WebSession.getUser(session);
     const toId = (await User.getUserByUsername(to))._id;
-    return await Friend.removeRequest(user, toId);
+    return await Relationship.removeRequest(user, toId);
   }
 
-  @Router.put("/friend/accept/:from")
+  @Router.delete("/relationships/requests/:to")
+  async removePartnerRequest(session: WebSessionDoc, to: string) {
+    const user = WebSession.getUser(session);
+    const toId = (await User.getUserByUsername(to))._id;
+    return await Relationship.removeRequest(user, toId);
+  }
+
+  @Router.put("/relationships/friend/accept/:from")
   async acceptFriendRequest(session: WebSessionDoc, from: string) {
     const user = WebSession.getUser(session);
     const fromId = (await User.getUserByUsername(from))._id;
-    return await Friend.acceptRequest(fromId, user);
+    return await Relationship.acceptFriendRequest(fromId, user);
   }
 
-  @Router.put("/friend/reject/:from")
+  @Router.put("/relationships/partner/accept/:from")
+  async acceptPartnerRequest(session: WebSessionDoc, from: string) {
+    const user = WebSession.getUser(session);
+    const fromId = (await User.getUserByUsername(from))._id;
+    return await Relationship.acceptPartnerRequest(fromId, user);
+  }
+
+  @Router.put("/relationships/reject/:from")
   async rejectFriendRequest(session: WebSessionDoc, from: string) {
     const user = WebSession.getUser(session);
     const fromId = (await User.getUserByUsername(from))._id;
-    return await Friend.rejectRequest(fromId, user);
+    return await Relationship.rejectRequest(fromId, user);
   }
 
   // Profile[User] routes
 
-  @Router.get("users/:username/profile")
-  async getProfile(username: string) {
-    return null;
+  // @Router.get("users/:username/profile")
+  // async getProfile(username: string) {
+  //   return null;
+  // }
+
+  // @Router.post("users/:username/profile")
+  // async createProfile(session: WebSessionDoc, profileData: string) {
+  //   return null;
+  // }
+
+  // @Router.patch("users/:username/profile")
+  // async updateProfile(session: WebSessionDoc, profileData: string) {
+  //   return null;
+  // }
+
+  // @Router.delete("users/:username/profile")
+  // async deleteProfile(session: WebSessionDoc) {
+  //   return null;
+  // }
+
+  @Router.get("/profiles")
+  async getProfiles(user?: string) {
+    let profiles;
+    if (user) {
+      const id = (await User.getUserByUsername(user))._id;
+      profiles = await Profile.getByUser(id);
+    } else {
+      profiles = await Profile.getProfiles({});
+    }
+    return profiles;
   }
 
-  @Router.post("users/:username/profile")
-  async createProfile(session: WebSessionDoc, profileData: string) {
-    return null;
+  @Router.post("/profiles")
+  async createProfile(session: WebSessionDoc, nickname: string, email: string) {
+    const user = WebSession.getUser(session);
+    const created = await Profile.create(user, nickname, email);
+    return { msg: created.msg, profile: await created.profile };
   }
 
-  @Router.patch("users/:username/profile")
-  async updateProfile(session: WebSessionDoc, profileData: string) {
-    return null;
+  @Router.patch("/profiles/:_id")
+  async updateProfile(session: WebSessionDoc, _id: ObjectId, update: Partial<ProfileDoc>) {
+    const user = WebSession.getUser(session);
+    await Profile.isUser(user, _id);
+    return await Profile.update(_id, update);
   }
 
-  @Router.delete("users/:username/profile")
-  async deleteProfile(session: WebSessionDoc) {
-    return null;
+  @Router.delete("/profiles/:_id")
+  async deleteProfile(session: WebSessionDoc, _id: ObjectId) {
+    const user = WebSession.getUser(session);
+    await Profile.isUser(user, _id);
+    return Profile.delete(_id);
   }
 
   // Map routes

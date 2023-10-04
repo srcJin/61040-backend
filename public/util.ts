@@ -77,6 +77,84 @@ const operations: operation[] = [
     method: "DELETE",
     fields: { id: "input" },
   },
+  {
+    name: "ADD Create Profile",
+    endpoint: "/api/profiles",
+    method: "PATCH",
+    fields: { nickname: "input", email: "input" },
+  },
+  {
+    name: "ADD Delete Profile",
+    endpoint: "/api/profiles/:id",
+    method: "DELETE",
+    fields: { id: "input" },
+  },
+  {
+    name: "ADD Update Profile",
+    endpoint: "/api/profiles/:id",
+    method: "PATCH",
+    fields: { id: "input", update: { nickname: "input", email: "input" } },
+  },
+  {
+    name: "Get Relationships",
+    endpoint: "/api/relationships",
+    method: "GET",
+    fields: {},
+  },
+  {
+    name: "Remove Friend",
+    endpoint: "/api/relationships/:friend",
+    method: "DELETE",
+    fields: { friend: "input" },
+  },
+  {
+    name: "Remove Partner",
+    endpoint: "/api/relationships/:partner",
+    method: "DELETE",
+    fields: { partner: "input" },
+  },
+  {
+    name: "Get Relationship Requests",
+    endpoint: "/api/relationships/requests",
+    method: "GET",
+    fields: {},
+  },
+  {
+    name: "Send Friend Request",
+    endpoint: "/api/relationships/friend/requests/:to",
+    method: "POST",
+    fields: { to: "input" },
+  },
+  {
+    name: "Send Partner Request",
+    endpoint: "/api/relationships/partner/requests/:to",
+    method: "POST",
+    fields: { to: "input" },
+  },
+  {
+    name: "Remove Relationship Request",
+    endpoint: "/api/relationships/requests/:to",
+    method: "DELETE",
+    fields: { to: "input" }, // This can handle both friend and partner request removals.
+  },
+  {
+    name: "Accept Friend Request",
+    endpoint: "/api/relationships/friend/accept/:from",
+    method: "PUT",
+    fields: { from: "input" },
+  },
+  {
+    name: "Accept Partner Request",
+    endpoint: "/api/relationships/partner/accept/:from",
+    method: "PUT",
+    fields: { from: "input" },
+  },
+  {
+    name: "Reject Relationship Request",
+    endpoint: "/api/relationships/reject/:from",
+    method: "PUT",
+    fields: { from: "input" }, // This can handle both friend and partner request rejections.
+  },
 ];
 
 // Do not edit below here.
