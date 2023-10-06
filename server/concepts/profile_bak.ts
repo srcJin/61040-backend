@@ -1,4 +1,4 @@
-import { ObjectId } from "mongodb";
+import { Filter, ObjectId } from "mongodb";
 
 import DocCollection, { BaseDoc } from "../framework/doc";
 import { NotAllowedError, NotFoundError } from "./errors";
@@ -13,28 +13,29 @@ export default class ProfileConcept {
   public readonly profiles = new DocCollection<ProfileDoc>("profiles");
 
   async create(user: ObjectId, nickname: string, email: string) {
-    // Check if the user already has a profile
-    const existingProfile = await this.getByUser(user);
-    if (existingProfile) {
-      throw new NotAllowedError("User already has a profile!");
-    }
-
     const _id = await this.profiles.createOne({ user, nickname, email });
     return { msg: "Profile successfully created!", profile: await this.profiles.readOne({ _id }) };
   }
 
-  async getByUser(user: ObjectId): Promise<ProfileDoc | null> {
-    return await this.profiles.readOne({ user });
+  async getProfiles(query: Filter<ProfileDoc>) {
+    const profiles = await this.profiles.readMany(query, {
+      sort: { dateUpdated: -1 },
+    });
+    return profiles;
   }
 
-  async update(user: ObjectId, update: Partial<ProfileDoc>) {
+  async getByUser(user: ObjectId) {
+    return await this.getProfiles({ user });
+  }
+
+  async update(_id: ObjectId, update: Partial<ProfileDoc>) {
     this.sanitizeUpdate(update);
-    await this.profiles.updateOne({ user }, update);
+    await this.profiles.updateOne({ _id }, update);
     return { msg: "Profile successfully updated!" };
   }
 
-  async delete(user: ObjectId) {
-    await this.profiles.deleteOne({ user });
+  async delete(_id: ObjectId) {
+    await this.profiles.deleteOne({ _id });
     return { msg: "Profile deleted successfully!" };
   }
 

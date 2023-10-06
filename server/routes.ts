@@ -141,7 +141,7 @@ class Routes {
   // @Router.put("/friend/reject/:from")
   // async rejectFriendRequest(session: WebSessionDoc, from: string) {
   //   const user = WebSession.getUser(session);
-  //   const fromId = (await User.getUserByUsername(from))._id;
+  //   const fromId = (await User.getUserByUsername(from))._id; // call username, and pass to profile concept
   //   return await Friend.rejectRequest(fromId, user);
   // }
 
@@ -234,11 +234,38 @@ class Routes {
   }
 
   // Profile[User] routes
+  // TA ed
+  // Syncronized between user and profile
+  // Get Profile by Username
+  @Router.get("/users/:username/profile")
+  async getProfile(username: string) {
+    const user = await User.getUserByUsername(username);
+    // console.log("id=", user._id);
+    return await Profile.getByUser(user._id);
+  }
 
-  // @Router.get("users/:username/profile")
-  // async getProfile(username: string) {
-  //   return null;
-  // }
+  // Create Profile for a User by Username
+  @Router.post("/users/:username/profile")
+  async createProfileByUsername(username: string, nickname: string, email: string) {
+    const id = (await User.getUserByUsername(username))._id;
+    const created = await Profile.create(id, nickname, email);
+    return { msg: created.msg, profile: await created.profile };
+  }
+
+  // Update Profile of a User by Username
+  @Router.patch("/users/:username/profile")
+  async updateProfileByUsername(username: string, update: Partial<ProfileDoc>) {
+    const user = (await User.getUserByUsername(username))._id;
+    // await Profile.isUser(id, id); // Verifying if the profile belongs to the user
+    return await Profile.update(user, update);
+  }
+
+  // Delete Profile of a User by Username
+  @Router.delete("/users/:username/profile")
+  async deleteProfileByUsername(username: string) {
+    const user = (await User.getUserByUsername(username))._id;
+    return Profile.delete(user);
+  }
 
   // @Router.post("users/:username/profile")
   // async createProfile(session: WebSessionDoc, profileData: string) {
@@ -255,38 +282,38 @@ class Routes {
   //   return null;
   // }
 
-  @Router.get("/profiles")
-  async getProfiles(user?: string) {
-    let profiles;
-    if (user) {
-      const id = (await User.getUserByUsername(user))._id;
-      profiles = await Profile.getByUser(id);
-    } else {
-      profiles = await Profile.getProfiles({});
-    }
-    return profiles;
-  }
+  // @Router.get("/profiles")
+  // async getProfiles(user?: string) {
+  //   let profiles;
+  //   if (user) {
+  //     const id = (await User.getUserByUsername(user))._id;
+  //     profiles = await Profile.getByUser(id);
+  //   } else {
+  //     profiles = await Profile.getProfiles({});
+  //   }
+  //   return profiles;
+  // }
 
-  @Router.post("/profiles")
-  async createProfile(session: WebSessionDoc, nickname: string, email: string) {
-    const user = WebSession.getUser(session);
-    const created = await Profile.create(user, nickname, email);
-    return { msg: created.msg, profile: await created.profile };
-  }
+  // @Router.post("/profiles")
+  // async createProfile(session: WebSessionDoc, nickname: string, email: string) {
+  //   const user = WebSession.getUser(session);
+  //   const created = await Profile.create(user, nickname, email);
+  //   return { msg: created.msg, profile: await created.profile };
+  // }
 
-  @Router.patch("/profiles/:_id")
-  async updateProfile(session: WebSessionDoc, _id: ObjectId, update: Partial<ProfileDoc>) {
-    const user = WebSession.getUser(session);
-    await Profile.isUser(user, _id);
-    return await Profile.update(_id, update);
-  }
+  // @Router.patch("/profiles/:_id")
+  // async updateProfile(session: WebSessionDoc, _id: ObjectId, update: Partial<ProfileDoc>) {
+  //   const user = WebSession.getUser(session);
+  //   await Profile.isUser(user, _id);
+  //   return await Profile.update(_id, update);
+  // }
 
-  @Router.delete("/profiles/:_id")
-  async deleteProfile(session: WebSessionDoc, _id: ObjectId) {
-    const user = WebSession.getUser(session);
-    await Profile.isUser(user, _id);
-    return Profile.delete(_id);
-  }
+  // @Router.delete("/profiles/:_id")
+  // async deleteProfile(session: WebSessionDoc, _id: ObjectId) {
+  //   const user = WebSession.getUser(session);
+  //   await Profile.isUser(user, _id);
+  //   return Profile.delete(_id);
+  // }
 
   // Map routes
   // Map concept is different, need ask TA
