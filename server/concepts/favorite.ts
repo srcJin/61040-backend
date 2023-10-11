@@ -9,6 +9,7 @@ export interface FavoriteDoc extends BaseDoc {
   user: ObjectId;
   type: FavoriteType;
   entityIds: ObjectId[]; // the eneityIds is the list of the catagory of that type, each user can have multiple favorite lists for each types
+  // fav posts, fav reply
 }
 
 export default class FavoriteConcept {

@@ -11,7 +11,7 @@ export interface PostDoc extends BaseDoc {
   author: ObjectId;
   title: string;
   content: string;
-  tags?: string[];
+  // tags?: string[]; // keep tag a separate concpet, not mix them
   options?: PostOptions;
 }
 
@@ -19,7 +19,7 @@ export default class PostConcept {
   public readonly posts = new DocCollection<PostDoc>("posts");
 
   async create(author: ObjectId, title: string, content: string, tags?: string[], options?: PostOptions) {
-    const _id = await this.posts.createOne({ author, title, content, tags, options });
+    const _id = await this.posts.createOne({ author, title, content, options });
     const post = await this.posts.readOne({ _id });
     return { msg: "Post successfully created!", post };
   }
@@ -61,7 +61,7 @@ export default class PostConcept {
 
   private sanitizeUpdate(update: Partial<PostDoc>) {
     // Make sure the update cannot change the author.
-    const allowedUpdates = ["content", "options", "title", "tags"];
+    const allowedUpdates = ["content", "options", "title"];
     for (const key in update) {
       if (!allowedUpdates.includes(key)) {
         throw new NotAllowedError(`Cannot update '${key}' field!`);

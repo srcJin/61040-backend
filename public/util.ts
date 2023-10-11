@@ -78,7 +78,19 @@ const operations: operation[] = [
     method: "DELETE",
     fields: { username: "input" },
   },
-
+  // useful apis for getting and update user location
+  {
+    name: "[Profile] Get User Location by Username",
+    endpoint: "/api/users/:username/location",
+    method: "GET",
+    fields: { username: "input" },
+  },
+  {
+    name: "[Profile] Update User Location by Username",
+    endpoint: "/api/users/:username/location",
+    method: "PATCH",
+    fields: { username: "input", location: "input" },
+  },
   // Post-reply related operations
   {
     name: "[Post] Create Post",
@@ -264,6 +276,50 @@ const operations: operation[] = [
     endpoint: "/api/relationships/reject/:from",
     method: "PUT",
     fields: { from: "input" }, // This can handle both friend and partner request rejections.
+  },
+  {
+    name: "[Marker] Create Marker",
+    endpoint: "/api/markers",
+    method: "POST",
+    fields: {
+      location: "input",
+      itemId: "input",
+      type: "input",
+      info: "input",
+      postIds: "input",
+    },
+  },
+  {
+    name: "[Marker] Get Markers",
+    endpoint: "/api/markers",
+    method: "GET",
+    fields: {
+      itemId: "input",
+      type: "input",
+      location: "input",
+      zoomLevel: "input",
+    },
+  },
+  {
+    name: "[Marker] Update Marker",
+    endpoint: "/api/markers/:id",
+    method: "PATCH",
+    fields: {
+      id: "input",
+      update: {
+        location: "input",
+        info: "input",
+        postIds: "input",
+      },
+    },
+  },
+  {
+    name: "[Marker] Delete Marker",
+    endpoint: "/api/markers/:id",
+    method: "DELETE",
+    fields: {
+      id: "input",
+    },
   },
 ];
 

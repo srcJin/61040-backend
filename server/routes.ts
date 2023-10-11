@@ -3,11 +3,17 @@ import { ObjectId } from "mongodb";
 import { Router, getExpressRouter } from "./framework/router";
 
 import { Favorite, Like, Marker, Post, Profile, Relationship, Reply, User, WebSession } from "./app";
+// don't know how to intergrate
+import { MarkerDoc, MarkerType } from "./concepts/marker";
+
 import { PostDoc, PostOptions } from "./concepts/post";
 import { ProfileDoc } from "./concepts/profile";
 import { UserDoc } from "./concepts/user";
 import { WebSessionDoc } from "./concepts/websession";
 import Responses from "./responses";
+
+// I don't know if it possible to get rid of import filter into routes
+import { Filter } from "mongodb";
 
 // Is it the best place to put an interface?
 interface PostFilter {
@@ -106,6 +112,7 @@ class Routes {
 
   @Router.get("/posts")
   // get posts can search by author, title, timeframe and tags
+  // now it has many ifs, will try to make it more modularized
   async getPosts(author?: string, title?: string, tags?: string[]) {
     const filter: PostFilter = {};
 
@@ -315,54 +322,6 @@ class Routes {
     return await Relationship.rejectRequest(fromId, user);
   }
 
-  // @Router.post("users/:username/profile")
-  // async createProfile(session: WebSessionDoc, profileData: string) {
-  //   return null;
-  // }
-
-  // @Router.patch("users/:username/profile")
-  // async updateProfile(session: WebSessionDoc, profileData: string) {
-  //   return null;
-  // }
-
-  // @Router.delete("users/:username/profile")
-  // async deleteProfile(session: WebSessionDoc) {
-  //   return null;
-  // }
-
-  // @Router.get("/profiles")
-  // async getProfiles(user?: string) {
-  //   let profiles;
-  //   if (user) {
-  //     const id = (await User.getUserByUsername(user))._id;
-  //     profiles = await Profile.getByUser(id);
-  //   } else {
-  //     profiles = await Profile.getProfiles({});
-  //   }
-  //   return profiles;
-  // }
-
-  // @Router.post("/profiles")
-  // async createProfile(session: WebSessionDoc, nickname: string, email: string) {
-  //   const user = WebSession.getUser(session);
-  //   const created = await Profile.create(user, nickname, email);
-  //   return { msg: created.msg, profile: await created.profile };
-  // }
-
-  // @Router.patch("/profiles/:_id")
-  // async updateProfile(session: WebSessionDoc, _id: ObjectId, update: Partial<ProfileDoc>) {
-  //   const user = WebSession.getUser(session);
-  //   await Profile.isUser(user, _id);
-  //   return await Profile.update(_id, update);
-  // }
-
-  // @Router.delete("/profiles/:_id")
-  // async deleteProfile(session: WebSessionDoc, _id: ObjectId) {
-  //   const user = WebSession.getUser(session);
-  //   await Profile.isUser(user, _id);
-  //   return Profile.delete(_id);
-  // }
-
   // Map routes
   // Map concept is different, need ask TA
   // we are using an API to draw an app at the front end
@@ -388,41 +347,61 @@ class Routes {
     return null;
   }
 
-  // Marker[Map] routes
-
-  @Router.get("/map/markers/")
-  // Get markers can search by referenceId, type, and location
-  async getMarker(referenceId?: ObjectId, type?: MarkerType, location?: [number, number]) {
-    const filter: any = {};
-    if (referenceId) {
-      filter.referenceId = referenceId;
-    }
-    if (type) {
-      filter.type = type;
-    }
-    if (location) {
-      filter.location = location; // This might need more refinement depending on your querying capabilities
-    }
-    const markers = await Marker.getMarkers(filter);
-    return { markers }; // Or use your own response formatter
-  }
-
-  @Router.post("/map/markers/")
-  async createMarker(session: WebSessionDoc, location: [number, number], referenceId: ObjectId, type: MarkerType, info?: string, postIds?: ObjectId[]) {
-    const created = await Marker.create(location, referenceId, type, info, postIds);
+  @Router.post("/markers")
+  // Create a marker
+  async createMarker(session: WebSessionDoc, location: [number, number], itemId: ObjectId, type: MarkerType, info?: string, postIds?: ObjectId[]) {
+    // const user = WebSession.getUser(session);
+    // if used user, we need some authorization checks here depending on your requirements
+    // @TODO, ask TA
+    const created = await Marker.create(location, itemId, type, info, postIds);
     return { msg: created.msg, marker: created.marker };
   }
 
-  @Router.patch("/map/markers/:markerId")
-  async updateMarker(session: WebSessionDoc, markerId: ObjectId, update: Partial<MarkerDoc>) {
-    // Optional: You can add a check to verify if the current user/session has the right to update this marker
-    return await Marker.update(markerId, update);
+  // Marker[Map] routes
+  @Router.get("/markers") //
+  // Retrieve markers with optional filtering by location and zoom level
+  async getMarkers(session: WebSessionDoc, itemId?: ObjectId, type?: MarkerType, location?: [number, number], zoomLevel?: number): Promise<{ markers: MarkerDoc[] }> {
+    let markers: MarkerDoc[] = [];
+
+    const filter: Filter<MarkerDoc> = {};
+
+    // If provide itemId , add it to the filter
+    if (itemId) {
+      filter.itemId = itemId;
+    }
+    // If provide type, add it to the filter
+    if (type) {
+      filter.type = type;
+    }
+    // If provide location and zoomLevel, filter markers in range
+    // notice: filtering by range happens before applying the filter
+    if (location && zoomLevel) {
+      markers = await Marker.getMarkersInRange(location, zoomLevel, filter);
+    } else {
+      // Otherwise, retrieve markers based on the filter
+      markers = await Marker.getMarkers(filter);
+    }
+
+    return { markers };
   }
 
-  @Router.delete("/map/markers/:markerId")
-  async deleteMarker(session: WebSessionDoc, markerId: ObjectId) {
-    // Optional: You can add a check to verify if the current user/session has the right to delete this marker
-    return Marker.delete(markerId);
+  @Router.patch("/markers/:_id")
+  // Update an existing marker
+  async updateMarker(session: WebSessionDoc, _id: ObjectId, update: Partial<MarkerDoc>) {
+    // const user = WebSession.getUser(session);
+    // no need for check if the user is the author of the marker
+    // the operation will happen backend
+    const updated = await Marker.update(_id, update);
+    return { msg: updated.msg, marker: updated.marker };
+  }
+
+  @Router.delete("/markers/:_id")
+  // Delete an existing marker
+  async deleteMarker(session: WebSessionDoc, _id: ObjectId) {
+    // const user = WebSession.getUser(session);
+    // Add authorization checks if needed
+    const deleted = await Marker.delete(_id);
+    return { msg: deleted.msg, marker: deleted.marker };
   }
 
   // Location[User] routes
