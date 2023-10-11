@@ -84,7 +84,7 @@ const operations: operation[] = [
     name: "Get Posts (empty for all)",
     endpoint: "/api/posts",
     method: "GET",
-    fields: { author: "input", tags: "input" },
+    fields: { id: "input", author: "input", title: "input", tags: "input" },
   },
   {
     name: "Create Post",

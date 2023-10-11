@@ -20,7 +20,8 @@ export default class PostConcept {
 
   async create(author: ObjectId, title: string, content: string, tags?: string[], options?: PostOptions) {
     const _id = await this.posts.createOne({ author, title, content, tags, options });
-    return { msg: "Post successfully created!", post: await this.posts.readOne({ _id }) };
+    const post = await this.posts.readOne({ _id });
+    return { msg: "Post successfully created!", post };
   }
 
   async getPosts(query: Filter<PostDoc>) {
@@ -37,12 +38,15 @@ export default class PostConcept {
   async update(_id: ObjectId, update: Partial<PostDoc>) {
     this.sanitizeUpdate(update);
     await this.posts.updateOne({ _id }, update);
-    return { msg: "Post successfully updated!" };
+    // for testing, can delete after deploy
+    const post = await this.posts.readOne({ _id });
+    return { msg: "Post successfully updated!", post };
   }
 
   async delete(_id: ObjectId) {
+    const post = await this.posts.readOne({ _id });
     await this.posts.deleteOne({ _id });
-    return { msg: "Post deleted successfully!" };
+    return { msg: "Post deleted successfully!", post };
   }
 
   async isAuthor(user: ObjectId, _id: ObjectId) {

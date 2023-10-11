@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Post, Profile, Relationship, User, WebSession } from "./app";
+import { Post, Profile, Relationship, Reply, User, WebSession } from "./app";
 import { PostDoc, PostOptions } from "./concepts/post";
 import { ProfileDoc } from "./concepts/profile";
 import { UserDoc } from "./concepts/user";
@@ -117,13 +117,17 @@ class Routes {
   // Reply[Post] routes
 
   @Router.get("/posts/:_id/replies")
-  async getReplies(postId: ObjectId) {
-    return null;
+  async getRepliesByPostId(_id: ObjectId) {
+    console.log("getRepliesByPostId, relatedPost=", _id);
+    return await Reply.getRepliesByPostId(_id);
   }
 
   @Router.post("/posts/:_id/replies")
-  async createReply(session: WebSessionDoc, content: string) {
-    return null;
+  async createReply(session: WebSessionDoc, content: string, _id: ObjectId) {
+    console.log("createReply, relatedPost=", _id);
+    const user = WebSession.getUser(session);
+    const created = await Reply.create(user, content, _id);
+    return { msg: created.msg, reply: created.reply };
   }
 
   // // Friends routes
