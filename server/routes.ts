@@ -9,6 +9,13 @@ import { UserDoc } from "./concepts/user";
 import { WebSessionDoc } from "./concepts/websession";
 import Responses from "./responses";
 
+// Is it the best place to put an interface?
+interface PostFilter {
+  authorId?: ObjectId;
+  title?: string;
+  tags?: { $in: string[] };
+}
+
 class Routes {
   @Router.get("/session")
   async getSessionUser(session: WebSessionDoc) {
@@ -64,21 +71,32 @@ class Routes {
   // Posts routes
 
   @Router.get("/posts")
-  async getPosts(author?: string) {
-    let posts;
+  // get posts can search by author, title, timeframe and tags
+  async getPosts(author?: string, title?: string, tags?: string[]) {
+    const filter: PostFilter = {};
+
     if (author) {
       const id = (await User.getUserByUsername(author))._id;
-      posts = await Post.getByAuthor(id);
-    } else {
-      posts = await Post.getPosts({});
+      filter.authorId = id;
     }
+
+    if (title) {
+      filter.title = title;
+    }
+
+    if (tags && tags.length) {
+      filter.tags = { $in: tags };
+    }
+
+    const posts = await Post.getPosts(filter);
+
     return Responses.posts(posts);
   }
 
   @Router.post("/posts")
-  async createPost(session: WebSessionDoc, content: string, options?: PostOptions) {
+  async createPost(session: WebSessionDoc, title: string, content: string, tags?: string[], options?: PostOptions) {
     const user = WebSession.getUser(session);
-    const created = await Post.create(user, content, options);
+    const created = await Post.create(user, title, content, tags, options);
     return { msg: created.msg, post: await Responses.post(created.post) };
   }
 
@@ -94,6 +112,18 @@ class Routes {
     const user = WebSession.getUser(session);
     await Post.isAuthor(user, _id);
     return Post.delete(_id);
+  }
+
+  // Reply[Post] routes
+
+  @Router.get("/posts/:_id/replies")
+  async getReplies(postId: ObjectId) {
+    return null;
+  }
+
+  @Router.post("/posts/:_id/replies")
+  async createReply(session: WebSessionDoc, content: string) {
+    return null;
   }
 
   // // Friends routes
@@ -388,18 +418,6 @@ class Routes {
   // Nearby routes：
   @Router.get("/locations/nearby")
   async getNearbyPOIs(location: string, radius?: number) {
-    return null;
-  }
-
-  // Reply[Post] routes
-
-  @Router.get("/posts/:_id/replies")
-  async getReplies(postId: ObjectId) {
-    return null;
-  }
-
-  @Router.post("/posts/:_id/replies")
-  async createReply(session: WebSessionDoc, content: string) {
     return null;
   }
 

@@ -11,6 +11,7 @@ type operation = {
 };
 
 const operations: operation[] = [
+  // User related operations
   {
     name: "Get Session User (logged in user)",
     endpoint: "/api/session",
@@ -54,30 +55,6 @@ const operations: operation[] = [
     fields: { username: "input" },
   },
   {
-    name: "Get Posts (empty for all)",
-    endpoint: "/api/posts",
-    method: "GET",
-    fields: { author: "input" },
-  },
-  {
-    name: "Create Post",
-    endpoint: "/api/posts",
-    method: "POST",
-    fields: { content: "input" },
-  },
-  {
-    name: "Update Post",
-    endpoint: "/api/posts/:id",
-    method: "PATCH",
-    fields: { id: "input", update: { content: "input", options: { backgroundColor: "input" } } },
-  },
-  {
-    name: "Delete Post",
-    endpoint: "/api/posts/:id",
-    method: "DELETE",
-    fields: { id: "input" },
-  },
-  {
     name: "Get User Profile by Username",
     endpoint: "/api/users/:username/profile",
     method: "GET",
@@ -101,6 +78,52 @@ const operations: operation[] = [
     method: "DELETE",
     fields: { username: "input" },
   },
+
+  // Post-reply related operations
+  {
+    name: "Get Posts (empty for all)",
+    endpoint: "/api/posts",
+    method: "GET",
+    fields: { author: "input", tags: "input" },
+  },
+  {
+    name: "Create Post",
+    endpoint: "/api/posts",
+    method: "POST",
+    fields: { title: "input", content: "input", tags: "input", options: { backgroundColor: "input" } },
+  },
+  {
+    name: "Update Post",
+    endpoint: "/api/posts/:id",
+    method: "PATCH",
+    fields: { id: "input", update: { title: "input", content: "input", tags: "input", options: { backgroundColor: "input" } } },
+  },
+  {
+    name: "Delete Post",
+    endpoint: "/api/posts/:id",
+    method: "DELETE",
+    fields: { id: "input" },
+  },
+  {
+    name: "Get Replies by Post ID",
+    endpoint: "/api/posts/:id/replies",
+    method: "GET",
+    fields: { id: "input" },
+  },
+  {
+    name: "Create Reply on Post",
+    endpoint: "/api/posts/:id/replies",
+    method: "POST",
+    fields: { id: "input", content: "input" },
+  },
+  {
+    name: "Update Reply on Post",
+    endpoint: "/api/posts/:id/replies/:replyId",
+    method: "PATCH",
+    fields: { id: "input", replyId: "input", update: { content: "input", options: { backgroundColor: "input" } } },
+  },
+
+  // Relationship related operations
   {
     name: "Get Relationships",
     endpoint: "/api/relationships",

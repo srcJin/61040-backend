@@ -7,6 +7,18 @@ export interface ProfileDoc extends BaseDoc {
   user: ObjectId;
   nickname: string;
   email: string;
+  dateJoined: Date;
+  dateUpdated: Date;
+  headshotUrl?: string;
+  // identity is a set of strings that can be "beekeeper", "customer", "expert" or "undefined"
+  identity?: string[];
+  // role is a string that can be "admin" or "user"
+  role?: string;
+  // liked is a list of post ids that the user has
+  liked: ObjectId[];
+  favorite: ObjectId[];
+  // lastLocation is a coordinate pair [longitude, latitude]
+  lastLocation: number[];
 }
 
 export default class ProfileConcept {
@@ -19,7 +31,7 @@ export default class ProfileConcept {
       throw new NotAllowedError("User already has a profile!");
     }
 
-    const _id = await this.profiles.createOne({ user, nickname, email });
+    const _id = await this.profiles.createOne({ user, nickname, email, dateJoined: new Date(), dateUpdated: new Date(), liked: [], favorite: [], lastLocation: [0, 0] });
     return { msg: "Profile successfully created!", profile: await this.profiles.readOne({ _id }) };
   }
 
@@ -27,6 +39,7 @@ export default class ProfileConcept {
     return await this.profiles.readOne({ user });
   }
 
+  // update a profile using partial ProfileDoc
   async update(user: ObjectId, update: Partial<ProfileDoc>) {
     this.sanitizeUpdate(update);
     await this.profiles.updateOne({ user }, update);
@@ -46,6 +59,21 @@ export default class ProfileConcept {
     if (profile.user.toString() !== user.toString()) {
       throw new ProfileUserNotMatchError(user, _id);
     }
+  }
+
+  // a function for getting user location becuase it can be frequently used
+  async getUserLocation(user: ObjectId) {
+    const profile = await this.profiles.readOne({ user });
+    if (!profile) {
+      throw new NotFoundError(`Profile ${user} does not exist!`);
+    }
+    return profile.lastLocation;
+  }
+
+  // a function for updating user location because it can be frequently used
+  async updateLocation(user: ObjectId, location: number[]) {
+    await this.profiles.updateOne({ user }, { lastLocation: location });
+    return { msg: "Location successfully updated!" };
   }
 
   private sanitizeUpdate(update: Partial<ProfileDoc>) {
