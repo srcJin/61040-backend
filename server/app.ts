@@ -1,6 +1,7 @@
 import FriendConcept from "./concepts/friend";
 import RelationshipConcept from "./concepts/relationship";
 
+import FavoriteConcept from "./concepts/favorite";
 import PostConcept from "./concepts/post";
 import ProfileConcept from "./concepts/profile";
 import ReplyConcept from "./concepts/reply";
@@ -16,3 +17,4 @@ export const Reply = new ReplyConcept();
 export const Friend = new FriendConcept();
 export const Profile = new ProfileConcept();
 export const Relationship = new RelationshipConcept();
+export const Favorite = new FavoriteConcept();

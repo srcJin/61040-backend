@@ -68,6 +68,40 @@ class Routes {
     return { msg: "Logged out!" };
   }
 
+  // Profile[User] routes
+  // TA ed
+  // Syncronized between user and profile
+  // Get Profile by Username
+  @Router.get("/users/:username/profile")
+  async getProfile(username: string) {
+    const user = await User.getUserByUsername(username);
+    // console.log("id=", user._id);
+    return await Profile.getByUser(user._id);
+  }
+
+  // Create Profile for a User by Username
+  @Router.post("/users/:username/profile")
+  async createProfileByUsername(username: string, nickname: string, email: string) {
+    const id = (await User.getUserByUsername(username))._id;
+    const created = await Profile.create(id, nickname, email);
+    return { msg: created.msg, profile: await created.profile };
+  }
+
+  // Update Profile of a User by Username
+  @Router.patch("/users/:username/profile")
+  async updateProfileByUsername(username: string, update: Partial<ProfileDoc>) {
+    const user = (await User.getUserByUsername(username))._id;
+    // await Profile.isUser(id, id); // Verifying if the profile belongs to the user
+    return await Profile.update(user, update);
+  }
+
+  // Delete Profile of a User by Username
+  @Router.delete("/users/:username/profile")
+  async deleteProfileByUsername(username: string) {
+    const user = (await User.getUserByUsername(username))._id;
+    return Profile.delete(user);
+  }
+
   // Posts routes
 
   @Router.get("/posts")
@@ -128,6 +162,20 @@ class Routes {
     const user = WebSession.getUser(session);
     const created = await Reply.create(user, content, _id);
     return { msg: created.msg, reply: created.reply };
+  }
+
+  @Router.patch("/posts/:_id/replies/:replyId")
+  async updateReply(session: WebSessionDoc, _id: ObjectId, replyId: ObjectId, update: Partial<PostDoc>) {
+    const user = WebSession.getUser(session);
+    await Reply.isAuthor(user, replyId);
+    return await Reply.update(replyId, update);
+  }
+
+  @Router.delete("/posts/:_id/replies/:replyId")
+  async deleteReply(session: WebSessionDoc, _id: ObjectId, replyId: ObjectId) {
+    const user = WebSession.getUser(session);
+    await Reply.isAuthor(user, replyId);
+    return Reply.delete(replyId);
   }
 
   // // Friends routes
@@ -267,40 +315,6 @@ class Routes {
     return await Relationship.rejectRequest(fromId, user);
   }
 
-  // Profile[User] routes
-  // TA ed
-  // Syncronized between user and profile
-  // Get Profile by Username
-  @Router.get("/users/:username/profile")
-  async getProfile(username: string) {
-    const user = await User.getUserByUsername(username);
-    // console.log("id=", user._id);
-    return await Profile.getByUser(user._id);
-  }
-
-  // Create Profile for a User by Username
-  @Router.post("/users/:username/profile")
-  async createProfileByUsername(username: string, nickname: string, email: string) {
-    const id = (await User.getUserByUsername(username))._id;
-    const created = await Profile.create(id, nickname, email);
-    return { msg: created.msg, profile: await created.profile };
-  }
-
-  // Update Profile of a User by Username
-  @Router.patch("/users/:username/profile")
-  async updateProfileByUsername(username: string, update: Partial<ProfileDoc>) {
-    const user = (await User.getUserByUsername(username))._id;
-    // await Profile.isUser(id, id); // Verifying if the profile belongs to the user
-    return await Profile.update(user, update);
-  }
-
-  // Delete Profile of a User by Username
-  @Router.delete("/users/:username/profile")
-  async deleteProfileByUsername(username: string) {
-    const user = (await User.getUserByUsername(username))._id;
-    return Profile.delete(user);
-  }
-
   // @Router.post("users/:username/profile")
   // async createProfile(session: WebSessionDoc, profileData: string) {
   //   return null;
@@ -425,16 +439,43 @@ class Routes {
     return null;
   }
 
-  // Favorite[Post] routes
+  // Favorite[Item] routes
 
+  // Favorites a post
   @Router.post("/posts/:_id/favorite")
-  async favoritePost(session: WebSessionDoc, postId: ObjectId) {
-    return null;
+  async addPostToFavorites(session: WebSessionDoc, _id: ObjectId) {
+    const user = WebSession.getUser(session);
+    return await FavoriteConcept.addFavorite(user, "post", _id);
   }
 
+  // Remove a post from favorites
   @Router.delete("/posts/:_id/favorite")
-  async unfavoritePost(session: WebSessionDoc, postId: ObjectId) {
-    return null;
+  async removePostFromFavorites(session: WebSessionDoc, _id: ObjectId) {
+    const user = WebSession.getUser(session);
+    return await FavoriteConcept.removeFavorite(user, "post", _id);
+  }
+
+  // Favorite a reply
+  @Router.post("/posts/:_id/replies/:replyId/favorite")
+  async addReplyToFavorites(session: WebSessionDoc, _id: ObjectId, replyId: ObjectId) {
+    const user = WebSession.getUser(session);
+    return await FavoriteConcept.addFavorite(user, "reply", replyId);
+  }
+
+  // Remove a reply from favorites
+  @Router.delete("/posts/:_id/replies/:replyId/favorite")
+  async removeReplyFromFavorites(session: WebSessionDoc, _id: ObjectId, replyId: ObjectId) {
+    const user = WebSession.getUser(session);
+    return await FavoriteConcept.removeFavorite(user, "reply", replyId);
+  }
+
+  // Get all favorites for a user
+  @Router.get("/favorites")
+  async getAllFavorites(session: WebSessionDoc) {
+    const user = WebSession.getUser(session);
+    const favoritePosts = await FavoriteConcept.getFavorites(user, "post");
+    const favoriteReplies = await FavoriteConcept.getFavorites(user, "reply");
+    return { favoritePosts, favoriteReplies };
   }
 
   // Like[Post] routes
