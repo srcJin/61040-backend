@@ -129,6 +129,37 @@ const operations: operation[] = [
     method: "DELETE",
     fields: { id: "input", replyId: "input" },
   },
+  // Favorite related operations
+  {
+    name: "[Favorite] Add Post to Favorites",
+    endpoint: "/api/posts/:id/favorite",
+    method: "POST",
+    fields: { id: "input" },
+  },
+  {
+    name: "[Favorite] Remove Post from Favorites",
+    endpoint: "/api/posts/:id/favorite",
+    method: "DELETE",
+    fields: { id: "input" },
+  },
+  {
+    name: "[Favorite] Add Reply to Favorites",
+    endpoint: "/api/posts/:postId/replies/:replyId/favorite",
+    method: "POST",
+    fields: { postId: "input", replyId: "input" },
+  },
+  {
+    name: "[Favorite] Remove Reply from Favorites",
+    endpoint: "/api/posts/:postId/replies/:replyId/favorite",
+    method: "DELETE",
+    fields: { postId: "input", replyId: "input" },
+  },
+  {
+    name: "[Favorite] Get All Favorite Posts and Replies",
+    endpoint: "/api/favorites",
+    method: "GET",
+    fields: {}, // No fields required to fetch all favorites for a user
+  },
 
   // Relationship related operations
   {

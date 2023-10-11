@@ -27,20 +27,27 @@ export default class FavoriteConcept {
         await this.favorites.updateOne({ user, type }, { entityIds: updatedEntityIds });
       }
     }
-    return { msg: "Added to favorites!", detail: this.favorites };
+    return { msg: "Added to favorites!" };
   }
 
   async removeFavorite(user: ObjectId, type: FavoriteType, entityId: ObjectId) {
     const existing = await this.favorites.readOne({ user, type });
+    const idToRemove = entityId;
 
     if (!existing || !existing.entityIds.includes(entityId)) {
       throw new FavoriteNotFoundError(user, type, entityId);
     }
 
-    const updatedEntityIds = existing.entityIds.filter((id) => !id.equals(entityId));
-    await this.favorites.updateOne({ user, type }, { entityIds: updatedEntityIds });
+    if (existing.entityIds.length === 1) {
+      // If there's only one entityId left, remove the entire document
+      await this.favorites.deleteOne({ user, type });
+    } else {
+      // filter out the entityId from the list, and create a new entityIds list
+      const updatedEntityIds = existing.entityIds.filter((id) => id.toString() != entityId.toString());
+      await this.favorites.updateOne({ user, type }, { entityIds: updatedEntityIds });
+    }
 
-    return { msg: "Removed from favorites!", detail: this.favorites };
+    return { msg: "Removed from favorites!", id: idToRemove };
   }
 
   async getFavorites(user: ObjectId, type?: FavoriteType) {
@@ -49,6 +56,7 @@ export default class FavoriteConcept {
       query.type = type;
     }
     const favorites = await this.favorites.readMany(query);
+    console.log("getFavorites", favorites);
     return favorites.flatMap((fav) => fav.entityIds);
   }
 }

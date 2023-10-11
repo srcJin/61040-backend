@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Post, Profile, Relationship, Reply, User, WebSession } from "./app";
+import { Favorite, Post, Profile, Relationship, Reply, User, WebSession } from "./app";
 import { PostDoc, PostOptions } from "./concepts/post";
 import { ProfileDoc } from "./concepts/profile";
 import { UserDoc } from "./concepts/user";
@@ -445,36 +445,36 @@ class Routes {
   @Router.post("/posts/:_id/favorite")
   async addPostToFavorites(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
-    return await FavoriteConcept.addFavorite(user, "post", _id);
+    return await Favorite.addFavorite(user, "post", _id);
   }
 
   // Remove a post from favorites
   @Router.delete("/posts/:_id/favorite")
   async removePostFromFavorites(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
-    return await FavoriteConcept.removeFavorite(user, "post", _id);
+    return await Favorite.removeFavorite(user, "post", _id);
   }
 
   // Favorite a reply
   @Router.post("/posts/:_id/replies/:replyId/favorite")
   async addReplyToFavorites(session: WebSessionDoc, _id: ObjectId, replyId: ObjectId) {
     const user = WebSession.getUser(session);
-    return await FavoriteConcept.addFavorite(user, "reply", replyId);
+    return await Favorite.addFavorite(user, "reply", replyId);
   }
 
   // Remove a reply from favorites
   @Router.delete("/posts/:_id/replies/:replyId/favorite")
   async removeReplyFromFavorites(session: WebSessionDoc, _id: ObjectId, replyId: ObjectId) {
     const user = WebSession.getUser(session);
-    return await FavoriteConcept.removeFavorite(user, "reply", replyId);
+    return await Favorite.removeFavorite(user, "reply", replyId);
   }
 
   // Get all favorites for a user
   @Router.get("/favorites")
   async getAllFavorites(session: WebSessionDoc) {
     const user = WebSession.getUser(session);
-    const favoritePosts = await FavoriteConcept.getFavorites(user, "post");
-    const favoriteReplies = await FavoriteConcept.getFavorites(user, "reply");
+    const favoritePosts = await Favorite.getFavorites(user, "post");
+    const favoriteReplies = await Favorite.getFavorites(user, "reply");
     return { favoritePosts, favoriteReplies };
   }
 
