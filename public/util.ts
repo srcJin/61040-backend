@@ -147,7 +147,7 @@ function getHtmlOperations() {
 function prefixedRecordIntoObject(record: Record<string, string>) {
   const obj: any = {}; // eslint-disable-line
   for (const [key, value] of Object.entries(record)) {
-    if (!value) {
+    if (value === undefined || value === null || value === "") {
       continue;
     }
     const keys = key.split(".");
