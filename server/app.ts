@@ -2,11 +2,12 @@ import FriendConcept from "./concepts/friend";
 import RelationshipConcept from "./concepts/relationship";
 
 import FavoriteConcept from "./concepts/favorite";
+import LikeConcept from "./concepts/like";
+import MarkerConcept from "./concepts/marker";
 import PostConcept from "./concepts/post";
 import ProfileConcept from "./concepts/profile";
 import ReplyConcept from "./concepts/reply";
 import UserConcept from "./concepts/user";
-
 import WebSessionConcept from "./concepts/websession";
 
 // App Definition using concepts
@@ -18,3 +19,5 @@ export const Friend = new FriendConcept();
 export const Profile = new ProfileConcept();
 export const Relationship = new RelationshipConcept();
 export const Favorite = new FavoriteConcept();
+export const Like = new LikeConcept();
+export const Marker = new MarkerConcept();

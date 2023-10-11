@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Favorite, Post, Profile, Relationship, Reply, User, WebSession } from "./app";
+import { Favorite, Like, Marker, Post, Profile, Relationship, Reply, User, WebSession } from "./app";
 import { PostDoc, PostOptions } from "./concepts/post";
 import { ProfileDoc } from "./concepts/profile";
 import { UserDoc } from "./concepts/user";
@@ -390,24 +390,39 @@ class Routes {
 
   // Marker[Map] routes
 
-  @Router.get("/map/markers")
-  async getMarkers(mapId: ObjectId) {
-    return null;
+  @Router.get("/map/markers/")
+  // Get markers can search by referenceId, type, and location
+  async getMarker(referenceId?: ObjectId, type?: MarkerType, location?: [number, number]) {
+    const filter: any = {};
+    if (referenceId) {
+      filter.referenceId = referenceId;
+    }
+    if (type) {
+      filter.type = type;
+    }
+    if (location) {
+      filter.location = location; // This might need more refinement depending on your querying capabilities
+    }
+    const markers = await Marker.getMarkers(filter);
+    return { markers }; // Or use your own response formatter
   }
 
-  @Router.post("/map/markers")
-  async createMarker(session: WebSessionDoc, location: string) {
-    return null;
+  @Router.post("/map/markers/")
+  async createMarker(session: WebSessionDoc, location: [number, number], referenceId: ObjectId, type: MarkerType, info?: string, postIds?: ObjectId[]) {
+    const created = await Marker.create(location, referenceId, type, info, postIds);
+    return { msg: created.msg, marker: created.marker };
   }
 
-  @Router.put("/map/markers/:markerId")
-  async updateMarker(session: WebSessionDoc, mapId: ObjectId, markerId: ObjectId, updatedData: string) {
-    return null;
+  @Router.patch("/map/markers/:markerId")
+  async updateMarker(session: WebSessionDoc, markerId: ObjectId, update: Partial<MarkerDoc>) {
+    // Optional: You can add a check to verify if the current user/session has the right to update this marker
+    return await Marker.update(markerId, update);
   }
 
   @Router.delete("/map/markers/:markerId")
-  async deleteMarker(session: WebSessionDoc, mapId: ObjectId, markerId: ObjectId) {
-    return null;
+  async deleteMarker(session: WebSessionDoc, markerId: ObjectId) {
+    // Optional: You can add a check to verify if the current user/session has the right to delete this marker
+    return Marker.delete(markerId);
   }
 
   // Location[User] routes
@@ -441,7 +456,7 @@ class Routes {
 
   // Favorite[Item] routes
 
-  // Favorites a post
+  // Add a post to the favorite list
   @Router.post("/posts/:_id/favorite")
   async addPostToFavorites(session: WebSessionDoc, _id: ObjectId) {
     const user = WebSession.getUser(session);
@@ -480,14 +495,53 @@ class Routes {
 
   // Like[Post] routes
 
+  // Like a post
   @Router.post("/posts/:_id/like")
-  async likePost(session: WebSessionDoc, postId: ObjectId) {
-    return null;
+  async addPostLike(session: WebSessionDoc, _id: ObjectId) {
+    const user = WebSession.getUser(session);
+    return await Like.addLike(user, "post", _id);
   }
 
+  // Unlike a post
   @Router.delete("/posts/:_id/like")
-  async unlikePost(session: WebSessionDoc, postId: ObjectId) {
-    return null;
+  async removePostLike(session: WebSessionDoc, _id: ObjectId) {
+    const user = WebSession.getUser(session);
+    return await Like.removeLike(user, "post", _id);
+  }
+
+  // Like a reply
+  @Router.post("/posts/:_id/replies/:replyId/like")
+  async addReplyLike(session: WebSessionDoc, _id: ObjectId, replyId: ObjectId) {
+    const user = WebSession.getUser(session);
+    return await Like.addLike(user, "reply", replyId);
+  }
+
+  // Unlike a reply
+  @Router.delete("/posts/:_id/replies/:replyId/like")
+  async removeReplyLike(session: WebSessionDoc, _id: ObjectId, replyId: ObjectId) {
+    const user = WebSession.getUser(session);
+    return await Like.removeLike(user, "reply", replyId);
+  }
+
+  // Get all likes for a user
+  @Router.get("/likes")
+  async getAllLikes(session: WebSessionDoc) {
+    const user = WebSession.getUser(session);
+    const likedPosts = await Like.getUserLikes(user, "post");
+    const likedReplies = await Like.getUserLikes(user, "reply");
+    return { likedPosts, likedReplies };
+  }
+
+  // Get the like count for a post
+  @Router.get("/posts/:_id/like-count")
+  async getPostLikeCount(_id: ObjectId) {
+    return { count: await Like.getLikeCount("post", _id) };
+  }
+
+  // Get the like count for a reply
+  @Router.get("/posts/:_id/replies/:replyId/like-count")
+  async getReplyLikeCount(_id: ObjectId, replyId: ObjectId) {
+    return { count: await Like.getLikeCount("reply", replyId) };
   }
 
   // Tag routes

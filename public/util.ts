@@ -160,6 +160,49 @@ const operations: operation[] = [
     method: "GET",
     fields: {}, // No fields required to fetch all favorites for a user
   },
+  // Like related operations
+  {
+    name: "[Like] Add Post to Likes",
+    endpoint: "/api/posts/:id/like",
+    method: "POST",
+    fields: { id: "input" },
+  },
+  {
+    name: "[Like] Remove Post from Likes",
+    endpoint: "/api/posts/:id/like",
+    method: "DELETE",
+    fields: { id: "input" },
+  },
+  {
+    name: "[Like] Add Reply to Likes",
+    endpoint: "/api/posts/:postId/replies/:replyId/like",
+    method: "POST",
+    fields: { postId: "input", replyId: "input" },
+  },
+  {
+    name: "[Like] Remove Reply from Likes",
+    endpoint: "/api/posts/:postId/replies/:replyId/like",
+    method: "DELETE",
+    fields: { postId: "input", replyId: "input" },
+  },
+  {
+    name: "[Like] Get All Liked Posts and Replies",
+    endpoint: "/api/likes",
+    method: "GET",
+    fields: {}, // No fields required to fetch all likes for a user
+  },
+  {
+    name: "[Like] Get Like Count for a Post",
+    endpoint: "/api/posts/:id/like-count",
+    method: "GET",
+    fields: { id: "input" },
+  },
+  {
+    name: "[Like] Get Like Count for a Reply",
+    endpoint: "/api/posts/:postId/replies/:replyId/like-count",
+    method: "GET",
+    fields: { postId: "input", replyId: "input" },
+  },
 
   // Relationship related operations
   {
