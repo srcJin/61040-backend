@@ -4,6 +4,7 @@ import { Router, getExpressRouter } from "./framework/router";
 
 import { Favorite, Like, Map, Marker, Post, Profile, Relationship, Reply, Tag, User, WebSession } from "./app";
 // don't know how to intergrate
+import { MapDoc } from "./concepts/map";
 import { MarkerDoc } from "./concepts/marker";
 import { PostDoc } from "./concepts/post";
 import { ProfileDoc } from "./concepts/profile";
@@ -207,10 +208,11 @@ class Routes {
   }
 
   @Router.get("/relationships")
-  async getRelationships(session: WebSessionDoc, type: RelType) {
+  async getRelationships(session: WebSessionDoc, type?: RelType) {
     // You can pass type as a query parameter
     const user = WebSession.getUser(session);
-    return await Relationship.getRelationships(user, type);
+    // for debugging purpose, we just use follow
+    return { msg: "Following users:", list: await Relationship.getRelationships(user, RelType.Follow) };
   }
 
   @Router.delete("/relationships/:user2")
@@ -267,6 +269,19 @@ class Routes {
   // will need to check the API (probably leaflet) to better understand this part.
 
   // Map routes
+  @Router.post("/map")
+  async createMap(session?: WebSessionDoc, initialState?: Partial<MapDoc>) {
+    const userId = session ? WebSession.getUser(session) : undefined;
+
+    // If the session has a userId, set it to the initialState
+    if (userId) {
+      initialState = { ...initialState, user: userId };
+    }
+
+    // Use the createMap function
+    await Map.createMap(initialState);
+    return { msg: "Map successfully created!" };
+  }
 
   @Router.get("/map/state")
   async getMapState(session?: WebSessionDoc) {

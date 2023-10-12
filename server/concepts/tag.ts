@@ -20,8 +20,22 @@ export default class TagConcept {
   public readonly tags = new DocCollection<TagDoc>("tags");
 
   // create a new tag
+  // fixed: has bug where you can create a tag with the same name as an existing tag
+  // fixed: has bug that can create empty name tag
   async createTag(name: string) {
     console.log("Creating tag...");
+
+    // Check if the name is empty, undefined, null, or contains only whitespace
+    if (!name || !name.trim()) {
+      throw new NotAllowedError("Tag name cannot be empty or just whitespace!");
+    }
+
+    // Check if a tag with the given name already exists
+    const existingTag = await this.tags.readOne({ name });
+    if (existingTag) {
+      throw new NotAllowedError("Tag with this name already exists!");
+    }
+
     const _id = await this.tags.createOne({ name, owns: [] });
     console.log("Created tag with ID:", _id);
     const tag = await this.getTagById(_id);

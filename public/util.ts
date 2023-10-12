@@ -102,7 +102,7 @@ const operations: operation[] = [
     name: "[Post] Get Posts (empty for all)",
     endpoint: "/api/posts",
     method: "GET",
-    fields: { id: "input", author: "input", title: "input", postType: "input" },
+    fields: { author: "input", title: "input", postType: "input" },
   },
   {
     name: "[Post] Update Post",
@@ -206,15 +206,15 @@ const operations: operation[] = [
   },
   {
     name: "[Like] Get Like Count for a Post",
-    endpoint: "/api/likes/post/:id/like-count",
+    endpoint: "/api/likes/post/:_id/like-count",
     method: "GET",
-    fields: { id: "input" },
+    fields: { _id: "input" },
   },
   {
     name: "[Like] Get Like Count for a Reply",
-    endpoint: "/api/likes/reply/:id/like-count",
+    endpoint: "/api/likes/reply/:_id/like-count",
     method: "GET",
-    fields: { id: "input" },
+    fields: { _id: "input" },
   },
 
   // Relationship related operations
@@ -354,6 +354,12 @@ const operations: operation[] = [
     fields: { tagId: "input" },
   },
   {
+    name: "[Map] Create Map",
+    endpoint: "/api/map",
+    method: "POST",
+    fields: {},
+  },
+  {
     name: "[Map] Get Map State",
     endpoint: "/api/map/state",
     method: "GET",
@@ -393,7 +399,7 @@ const operations: operation[] = [
     },
   },
   {
-    name: "[Map] like Theme",
+    name: "[Map] Set Theme",
     endpoint: "/api/map/theme",
     method: "PATCH",
     fields: {

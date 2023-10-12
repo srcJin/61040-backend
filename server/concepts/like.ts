@@ -47,6 +47,9 @@ export default class LikeConcept {
 
   async getLikeCount(type: LikeType, entityId: ObjectId) {
     const likes = await this.likes.readMany({ type, entityId });
+    console.log("getLikeCount", likes);
+    console.log("getLikeCount", await this.likes.readMany({}));
+    console.log("getLikeCount, query", await this.likes.readMany({ type: "post", entityId }));
     return likes.length;
   }
 }
