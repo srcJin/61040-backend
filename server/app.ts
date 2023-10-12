@@ -1,4 +1,3 @@
-import FriendConcept from "./concepts/friend";
 import RelationshipConcept from "./concepts/relationship";
 
 import FavoriteConcept from "./concepts/favorite";
@@ -17,7 +16,6 @@ export const WebSession = new WebSessionConcept();
 export const User = new UserConcept();
 export const Post = new PostConcept();
 export const Reply = new ReplyConcept();
-export const Friend = new FriendConcept();
 export const Profile = new ProfileConcept();
 export const Relationship = new RelationshipConcept();
 export const Favorite = new FavoriteConcept();
