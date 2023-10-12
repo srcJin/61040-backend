@@ -5,8 +5,10 @@ import { NotAllowedError, NotFoundError } from "./errors";
 export enum RelType {
   Friend = "friend",
   Partner = "partner",
+  Follow = "follow",
 }
 
+// user1 and user2 each has their own relationship doc
 export interface RelationshipDoc extends BaseDoc {
   user1: ObjectId;
   user2: ObjectId;
@@ -24,6 +26,27 @@ export default class RelationshipConcept {
   private readonly relationships = new DocCollection<RelationshipDoc>("relationships");
   private readonly requests = new DocCollection<RequestDoc>("requests");
 
+  // follow doesnt need approval, is a one way relationship from user 1 to user 2
+  async follow(user1: ObjectId, user2: ObjectId) {
+    // User1 follows User2, add a relationship
+    await this.addRelationship(user1, user2, RelType.Follow);
+
+    // Check if they follow each other
+    const doesUser2FollowUser1 = await this.relationships.readOne({
+      user1: user2,
+      user2: user1,
+      relType: RelType.Follow,
+    });
+
+    if (doesUser2FollowUser1) {
+      // If they follow each other, they automatically become friends
+      await this.updateRelationship(user1, user2, RelType.Friend);
+      return { msg: `User ${user1} and User ${user2} are now friends!` };
+    }
+
+    return { msg: `User ${user1} now follows User ${user2}` };
+  }
+
   async getRequests(user: ObjectId, type: RelType) {
     return await this.requests.readMany({
       $or: [{ from: user }, { to: user }],
@@ -40,7 +63,9 @@ export default class RelationshipConcept {
   async acceptRequest(from: ObjectId, to: ObjectId, relType: RelType) {
     await this.removePendingRequest(from, to, relType);
     void this.requests.createOne({ from, to, relType, status: "accepted" });
-    void this.addRelationship(from, to, relType);
+    // accept request changes the relationship for both users
+    void this.updateRelationship(from, to, relType);
+    void this.updateRelationship(to, from, relType);
     return { msg: `Accepted ${relType} request!` };
   }
 
@@ -72,13 +97,42 @@ export default class RelationshipConcept {
   async getRelationships(user: ObjectId, relType: RelType) {
     const relationships = await this.relationships.readMany({
       $or: [{ user1: user }, { user2: user }],
-      relType: relType, // Fixed here
+      relType: relType,
     });
     return relationships.map((rel) => (rel.user1.toString() === user.toString() ? rel.user2 : rel.user1));
   }
 
   private async addRelationship(user1: ObjectId, user2: ObjectId, relType: RelType) {
+    // Check if a relationship of the specified type already exists
+    const existingRelationship = await this.relationships.readOne({
+      $or: [{ user1: user1, user2: user2, relType: relType }],
+    });
+    // If the relationship exists, do not add a new one
+    if (existingRelationship) {
+      return;
+    }
+    // Otherwise, add the new relationship
     void this.relationships.createOne({ user1, user2, relType });
+  }
+
+  // update relationship when a request is accepted, for friend and partner
+  private async updateRelationship(user1: ObjectId, user2: ObjectId, newRelType: RelType) {
+    // Determine the conditions to find the existing relationship.
+    const conditions = {
+      $or: [
+        { user1: user1, user2: user2 },
+        { user1: user2, user2: user1 },
+      ],
+    };
+    // Check if the relationship already exists.
+    const existingRelationship = await this.relationships.readOne(conditions);
+
+    if (!existingRelationship) {
+      throw new Error("Relationship not found");
+    }
+    // Update the relType for the existing relationship.
+    // Notice this is a one way change.
+    await this.relationships.updateOne(conditions, { relType: newRelType });
   }
 
   private async removePendingRequest(from: ObjectId, to: ObjectId, relType: RelType) {

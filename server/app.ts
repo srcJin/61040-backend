@@ -3,6 +3,7 @@ import RelationshipConcept from "./concepts/relationship";
 
 import FavoriteConcept from "./concepts/favorite";
 import LikeConcept from "./concepts/like";
+import MapConcept from "./concepts/map";
 import MarkerConcept from "./concepts/marker";
 import PostConcept from "./concepts/post";
 import ProfileConcept from "./concepts/profile";
@@ -23,3 +24,4 @@ export const Favorite = new FavoriteConcept();
 export const Like = new LikeConcept();
 export const Marker = new MarkerConcept();
 export const Tag = new TagConcept();
+export const Map = new MapConcept();

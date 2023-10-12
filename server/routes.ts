@@ -2,17 +2,17 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Favorite, Like, Marker, Post, Profile, Relationship, Reply, Tag, User, WebSession } from "./app";
+import { Favorite, Like, Map, Marker, Post, Profile, Relationship, Reply, Tag, User, WebSession } from "./app";
 // don't know how to intergrate
 import { MarkerDoc, MarkerType } from "./concepts/marker";
 import { PostDoc, PostOptions, PostType } from "./concepts/post";
 import { ProfileDoc } from "./concepts/profile";
+import { RelType } from "./concepts/relationship";
 import { ReplyType } from "./concepts/reply";
 import { TagDoc } from "./concepts/tag";
 import { UserDoc } from "./concepts/user";
 import { WebSessionDoc } from "./concepts/websession";
 import Responses from "./responses";
-
 // I don't know if it possible to get rid of import filter into routes
 import { Filter } from "mongodb";
 
@@ -182,141 +182,65 @@ class Routes {
     return Reply.delete(replyId);
   }
 
-  // // Friends routes
-
-  // @Router.get("/friends")
-  // async getFriends(session: WebSessionDoc) {
-  //   const user = WebSession.getUser(session);
-  //   return await User.idsToUsernames(await Friend.getFriends(user));
-  // }
-
-  // @Router.delete("/friends/:friend")
-  // async removeFriend(session: WebSessionDoc, friend: string) {
-  //   const user = WebSession.getUser(session);
-  //   const friendId = (await User.getUserByUsername(friend))._id;
-  //   return await Friend.removeFriend(user, friendId);
-  // }
-
-  // @Router.get("/friend/requests")
-  // async getRequests(session: WebSessionDoc) {
-  //   const user = WebSession.getUser(session);
-  //   return await Responses.friendRequests(await Friend.getRequests(user));
-  // }
-
-  // @Router.post("/friend/requests/:to")
-  // async sendFriendRequest(session: WebSessionDoc, to: string) {
-  //   const user = WebSession.getUser(session);
-  //   const toId = (await User.getUserByUsername(to))._id;
-  //   return await Friend.sendRequest(user, toId);
-  // }
-
-  // @Router.delete("/friend/requests/:to")
-  // async removeFriendRequest(session: WebSessionDoc, to: string) {
-  //   const user = WebSession.getUser(session);
-  //   const toId = (await User.getUserByUsername(to))._id;
-  //   return await Friend.removeRequest(user, toId);
-  // }
-
-  // @Router.put("/friend/accept/:from")
-  // async acceptFriendRequest(session: WebSessionDoc, from: string) {
-  //   const user = WebSession.getUser(session);
-  //   const fromId = (await User.getUserByUsername(from))._id;
-  //   return await Friend.acceptRequest(fromId, user);
-  // }
-
-  // @Router.put("/friend/reject/:from")
-  // async rejectFriendRequest(session: WebSessionDoc, from: string) {
-  //   const user = WebSession.getUser(session);
-  //   const fromId = (await User.getUserByUsername(from))._id; // call username, and pass to profile concept
-  //   return await Friend.rejectRequest(fromId, user);
-  // }
-
-  // Relationship routes, modified from Friend concept by adding partner relationship
-  // It is redundant at this moment. Will consult TA to make it apply to three states:
-  // Following, Friend, Partner
+  // follow target user
+  @Router.post("/relationships/follow/:user2")
+  async follow(session: WebSessionDoc, user2: string) {
+    const user1Id = WebSession.getUser(session);
+    const user2Id = (await User.getUserByUsername(user2))._id;
+    return await Relationship.follow(user1Id, user2Id);
+  }
 
   @Router.get("/relationships")
-  async getRelationships(session: WebSessionDoc) {
+  async getRelationships(session: WebSessionDoc, type: RelType) {
+    // You can pass type as a query parameter
     const user = WebSession.getUser(session);
-    // return await User.idsToUsernames(await Relationship.getRelationships(user));
-    return await Relationship.getRelationships(user);
+    return await Relationship.getRelationships(user, type);
   }
 
-  @Router.delete("/relationships/:friend")
-  async removeFriend(session: WebSessionDoc, friend: string) {
-    const user = WebSession.getUser(session);
-    const friendId = (await User.getUserByUsername(friend))._id;
-    return await Relationship.removeFriend(user, friendId);
-  }
-
-  @Router.delete("/relationships/:partner")
-  async removePartner(session: WebSessionDoc, partner: string) {
-    const user = WebSession.getUser(session);
-    const partnerId = (await User.getUserByUsername(partner))._id;
-    return await Relationship.removePartner(user, partnerId);
+  @Router.delete("/relationships/:user2")
+  async removeRelationship(session: WebSessionDoc, user2: string, relType: RelType) {
+    const user1Id = WebSession.getUser(session);
+    const user2Id = (await User.getUserByUsername(user2))._id;
+    return await Relationship.removeRelationship(user1Id, user2Id, relType);
   }
 
   @Router.get("/relationships/requests")
-  async getRequests(session: WebSessionDoc) {
+  async getRequests(session: WebSessionDoc, relType: RelType) {
     const user = WebSession.getUser(session);
-    // Retrieve both friend and partner requests
-    const friendRequests = await Relationship.getFriendRequests(user);
-    const partnerRequests = await Relationship.getPartnerRequests(user);
-    // Consolidate the results
+    const requests = await Relationship.getRequests(user, relType);
     return {
-      friendRequests: Responses.friendRequests(friendRequests),
-      partnerRequests: Responses.partnerRequests(partnerRequests),
+      requests,
     };
   }
 
-  @Router.post("/relationships/friend/requests/:to")
-  async sendFriendRequest(session: WebSessionDoc, to: string) {
+  @Router.post("/relationships/requests/:to")
+  async sendRequest(session: WebSessionDoc, to: string, relType: RelType) {
+    // relType can be passed as a query parameter
     const user = WebSession.getUser(session);
     const toId = (await User.getUserByUsername(to))._id;
-    return await Relationship.sendFriendRequest(user, toId);
-  }
-
-  @Router.post("/relationships/partner/requests/:to")
-  async sendPartnerRequest(session: WebSessionDoc, to: string) {
-    const user = WebSession.getUser(session);
-    const toId = (await User.getUserByUsername(to))._id;
-    return await Relationship.sendPartnerRequest(user, toId);
-  }
-
-  // will try to merge them into one delete route, remove both friend and partner requests
-  @Router.delete("/relationships/requests/:to")
-  async removeFriendRequest(session: WebSessionDoc, to: string) {
-    const user = WebSession.getUser(session);
-    const toId = (await User.getUserByUsername(to))._id;
-    return await Relationship.removeRequest(user, toId);
+    return await Relationship.sendRequest(user, toId, relType);
   }
 
   @Router.delete("/relationships/requests/:to")
-  async removePartnerRequest(session: WebSessionDoc, to: string) {
+  async removeRequest(session: WebSessionDoc, to: string, relType: RelType) {
     const user = WebSession.getUser(session);
     const toId = (await User.getUserByUsername(to))._id;
-    return await Relationship.removeRequest(user, toId);
+    return await Relationship.removeRequest(user, toId, relType);
   }
 
-  @Router.put("/relationships/friend/accept/:from")
-  async acceptFriendRequest(session: WebSessionDoc, from: string) {
+  @Router.put("/relationships/accept/:from")
+  async acceptRequest(session: WebSessionDoc, from: string, relType: RelType) {
+    // relType can be passed as a query parameter
     const user = WebSession.getUser(session);
     const fromId = (await User.getUserByUsername(from))._id;
-    return await Relationship.acceptFriendRequest(fromId, user);
-  }
-
-  @Router.put("/relationships/partner/accept/:from")
-  async acceptPartnerRequest(session: WebSessionDoc, from: string) {
-    const user = WebSession.getUser(session);
-    const fromId = (await User.getUserByUsername(from))._id;
-    return await Relationship.acceptPartnerRequest(fromId, user);
+    return await Relationship.acceptRequest(fromId, user, relType);
   }
 
   @Router.put("/relationships/reject/:from")
-  async rejectFriendRequest(session: WebSessionDoc, from: string) {
+  async rejectRequest(session: WebSessionDoc, from: string, relType: RelType) {
     const user = WebSession.getUser(session);
     const fromId = (await User.getUserByUsername(from))._id;
-    return await Relationship.rejectRequest(fromId, user);
+    return await Relationship.rejectRequest(fromId, user, relType);
   }
 
   // Map routes
@@ -326,22 +250,47 @@ class Routes {
   // functions, like zoom, will only rely on frontend
   // will need to check the API (probably leaflet) to better understand this part.
 
-  // Create a map using Leaflet API ?
-  @Router.post("/map")
-  async createMap() {
-    return null;
+  // Map routes
+
+  @Router.get("/map/state")
+  async getMapState(session?: WebSessionDoc) {
+    const userId = session ? WebSession.getUser(session) : undefined;
+    return await Map.getMapByUser(userId);
   }
 
-  // Update an existing map's center point
-  @Router.patch("/map")
-  async updateMap(session: WebSessionDoc, centerPoint: string) {
-    return null;
+  @Router.patch("/map/centerpoint")
+  async setCenterPoint(lng: number, lat: number, session?: WebSessionDoc) {
+    const userId = session ? WebSession.getUser(session) : undefined;
+    await Map.setCenterPoint([lng, lat], userId);
+    return { msg: "Center point updated!" };
   }
 
-  // Delete the map (don't know if necessary )
-  @Router.delete("/map")
-  async deleteMap(session: WebSessionDoc) {
-    return null;
+  @Router.patch("/map/zoomlevel")
+  async setZoomLevel(zoom: number, session?: WebSessionDoc) {
+    const userId = session ? WebSession.getUser(session) : undefined;
+    await Map.setZoomLevel(zoom, userId);
+    return { msg: "Zoom level updated!" };
+  }
+
+  @Router.post("/map/layer")
+  async addLayer(layer: string, session?: WebSessionDoc) {
+    const userId = session ? WebSession.getUser(session) : undefined;
+    await Map.addLayer(layer, userId);
+    return { msg: "Layer added!" };
+  }
+
+  @Router.delete("/map/layer")
+  async removeLayer(layer: string, session?: WebSessionDoc) {
+    const userId = session ? WebSession.getUser(session) : undefined;
+    await Map.removeLayer(layer, userId);
+    return { msg: "Layer removed!" };
+  }
+
+  @Router.patch("/map/theme")
+  async setTheme(theme: string, session?: WebSessionDoc) {
+    const userId = session ? WebSession.getUser(session) : undefined;
+    await Map.setTheme(theme, userId);
+    return { msg: "Map theme updated!" };
   }
 
   @Router.post("/markers")
@@ -399,35 +348,6 @@ class Routes {
     // Add authorization checks if needed
     const deleted = await Marker.delete(_id);
     return { msg: deleted.msg, marker: deleted.marker };
-  }
-
-  // Location[User] routes
-  // Retrieve a specific location by current User
-  @Router.get("users/:username/location")
-  async getSelfLocation(session: WebSessionDoc) {
-    return null;
-  }
-
-  @Router.get("users/:username/location")
-  async getUserLocation(_id: ObjectId) {
-    return null;
-  }
-
-  @Router.patch("users/:username/location")
-  async updateLocation(session: WebSessionDoc, newLocation: string) {
-    return null;
-  }
-
-  // Nearby routes：
-  @Router.get("/locations/nearby")
-  async getNearbyUsers(location: string, radius?: number) {
-    return null;
-  }
-
-  // Nearby routes：
-  @Router.get("/locations/nearby")
-  async getNearbyPOIs(location: string, radius?: number) {
-    return null;
   }
 
   // Favorite[Item] routes

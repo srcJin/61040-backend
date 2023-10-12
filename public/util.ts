@@ -218,22 +218,22 @@ const operations: operation[] = [
 
   // Relationship related operations
   {
-    name: "[Relationship] Get Relationships",
+    name: "[Relationship] Follow a User",
+    endpoint: "/api/relationships/follow/:usernameToFollow",
+    method: "POST",
+    fields: { usernameToFollow: "input" },
+  },
+  {
+    name: "[Relationship] Get All Relationships",
     endpoint: "/api/relationships",
     method: "GET",
     fields: {},
   },
   {
-    name: "[Relationship] Remove Friend",
-    endpoint: "/api/relationships/:friend",
+    name: "[Relationship] Remove a Relationship with a target user",
+    endpoint: "/api/relationships/:type/:target",
     method: "DELETE",
-    fields: { friend: "input" },
-  },
-  {
-    name: "[Relationship] Remove Partner",
-    endpoint: "/api/relationships/:partner",
-    method: "DELETE",
-    fields: { partner: "input" },
+    fields: { type: "input", target: "input" },
   },
   {
     name: "[Relationship] Get Relationship Requests",
@@ -242,32 +242,20 @@ const operations: operation[] = [
     fields: {},
   },
   {
-    name: "[Relationship] Send Friend Request",
-    endpoint: "/api/relationships/friend/requests/:to",
+    name: "[Relationship] Send Relationship Request",
+    endpoint: "/api/relationships/requests/:to/:type",
     method: "POST",
-    fields: { to: "input" },
-  },
-  {
-    name: "[Relationship] Send Partner Request",
-    endpoint: "/api/relationships/partner/requests/:to",
-    method: "POST",
-    fields: { to: "input" },
+    fields: { to: "input", type: "input" },
   },
   {
     name: "[Relationship] Remove Relationship Request",
     endpoint: "/api/relationships/requests/:to",
     method: "DELETE",
-    fields: { to: "input" }, // This can handle both friend and partner request removals.
+    fields: { to: "input" },
   },
   {
-    name: "[Relationship] Accept Friend Request",
-    endpoint: "/api/relationships/friend/accept/:from",
-    method: "PUT",
-    fields: { from: "input" },
-  },
-  {
-    name: "[Relationship] Accept Partner Request",
-    endpoint: "/api/relationships/partner/accept/:from",
+    name: "[Relationship] Accept Relationship Request",
+    endpoint: "/api/relationships/accept/:from",
     method: "PUT",
     fields: { from: "input" },
   },
@@ -275,7 +263,7 @@ const operations: operation[] = [
     name: "[Relationship] Reject Relationship Request",
     endpoint: "/api/relationships/reject/:from",
     method: "PUT",
-    fields: { from: "input" }, // This can handle both friend and partner request rejections.
+    fields: { from: "input" },
   },
   {
     name: "[Marker] Create Marker",
@@ -334,40 +322,82 @@ const operations: operation[] = [
     method: "GET",
     fields: {},
   },
-
   {
     name: "[Tag] Update Tag by ID",
     endpoint: "/api/tags/:tagId",
     method: "PATCH",
     fields: { tagId: "input", update: { name: "input", options: "input" } },
   },
-
   {
     name: "[Tag] Delete Tag by ID",
     endpoint: "/api/tags/:tagId",
     method: "DELETE",
     fields: { tagId: "input" },
   },
-
   {
     name: "[Tag] Assign Tag to Item",
     endpoint: "/api/tags/:tagId/items/:itemId",
     method: "POST",
     fields: { tagId: "input", itemId: "input" },
   },
-
   {
     name: "[Tag] Get Items by Tag ID",
     endpoint: "/api/tags/:tagId/items",
     method: "GET",
     fields: { tagId: "input" },
   },
-
   {
     name: "[Tag] Get Tags by Item ID",
     endpoint: "/api/tags/:itemId/tags",
     method: "GET",
     fields: { tagId: "input" },
+  },
+  {
+    name: "[Map] Get Map State",
+    endpoint: "/map/state",
+    method: "GET",
+    fields: {},
+  },
+  {
+    name: "[Map] Set Center Point",
+    endpoint: "/map/centerpoint",
+    method: "PATCH",
+    fields: {
+      lng: "input",
+      lat: "input",
+    },
+  },
+  {
+    name: "[Map] Set Zoom Level",
+    endpoint: "/map/zoomlevel",
+    method: "PATCH",
+    fields: {
+      zoom: "input",
+    },
+  },
+  {
+    name: "[Map] Add Layer",
+    endpoint: "/map/layer",
+    method: "POST",
+    fields: {
+      layer: "input",
+    },
+  },
+  {
+    name: "[Map] Remove Layer",
+    endpoint: "/map/layer",
+    method: "DELETE",
+    fields: {
+      layer: "input",
+    },
+  },
+  {
+    name: "[Map] Set Theme",
+    endpoint: "/map/theme",
+    method: "PATCH",
+    fields: {
+      theme: "input",
+    },
   },
 ];
 
