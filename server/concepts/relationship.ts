@@ -8,12 +8,6 @@ export interface RelationshipDoc extends BaseDoc {
   type: string;
 }
 
-// follow doesn't need approval
-export interface FollowRequestDoc extends BaseDoc {
-  from: ObjectId;
-  to: ObjectId;
-}
-
 // friend need approval
 export interface FriendRequestDoc extends BaseDoc {
   from: ObjectId;

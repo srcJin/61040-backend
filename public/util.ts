@@ -58,7 +58,7 @@ const operations: operation[] = [
     name: "[Profile] Create User Profile by Username",
     endpoint: "/api/users/:username/profile",
     method: "POST",
-    fields: { username: "input", nickname: "input", email: "input" },
+    fields: { username: "input", nickname: "input", email: "input", headshotUrl: "input", lastLocation: "input" },
   },
   {
     name: "[Profile] Get User Profile by Username",
@@ -102,7 +102,7 @@ const operations: operation[] = [
     name: "[Post] Get Posts (empty for all)",
     endpoint: "/api/posts",
     method: "GET",
-    fields: { id: "input", author: "input", title: "input", tags: "input", postType: "input" },
+    fields: { id: "input", author: "input", title: "input", postType: "input" },
   },
   {
     name: "[Post] Update Post",
@@ -320,6 +320,54 @@ const operations: operation[] = [
     fields: {
       id: "input",
     },
+  },
+  {
+    name: "[Tag] Create Tag",
+    endpoint: "/api/tags",
+    method: "POST",
+    fields: { name: "input" },
+  },
+
+  {
+    name: "[Tag] Get All Tags",
+    endpoint: "/api/tags",
+    method: "GET",
+    fields: {},
+  },
+
+  {
+    name: "[Tag] Update Tag by ID",
+    endpoint: "/api/tags/:tagId",
+    method: "PATCH",
+    fields: { tagId: "input", update: { name: "input", options: "input" } },
+  },
+
+  {
+    name: "[Tag] Delete Tag by ID",
+    endpoint: "/api/tags/:tagId",
+    method: "DELETE",
+    fields: { tagId: "input" },
+  },
+
+  {
+    name: "[Tag] Assign Tag to Item",
+    endpoint: "/api/tags/:tagId/items/:itemId",
+    method: "POST",
+    fields: { tagId: "input", itemId: "input" },
+  },
+
+  {
+    name: "[Tag] Get Items by Tag ID",
+    endpoint: "/api/tags/:tagId/items",
+    method: "GET",
+    fields: { tagId: "input" },
+  },
+
+  {
+    name: "[Tag] Get Tags by Item ID",
+    endpoint: "/api/tags/:itemId/tags",
+    method: "GET",
+    fields: { tagId: "input" },
   },
 ];
 

@@ -22,14 +22,14 @@ export interface ProfileDoc extends BaseDoc {
 export default class ProfileConcept {
   public readonly profiles = new DocCollection<ProfileDoc>("profiles");
 
-  async create(user: ObjectId, nickname: string, email: string) {
+  async create(user: ObjectId, nickname: string, email: string, headshotUrl?: string, identity?: string[], role?: string, lastLocation?: number[]) {
     // Check if the user already has a profile
     const existingProfile = await this.getByUser(user);
     if (existingProfile) {
       throw new NotAllowedError("User already has a profile!");
     }
 
-    const _id = await this.profiles.createOne({ user, nickname, email, lastLocation: [0, 0] });
+    const _id = await this.profiles.createOne({ user, nickname, email, headshotUrl, identity, role, lastLocation: [0, 0] });
     return { msg: "Profile successfully created!", profile: await this.profiles.readOne({ _id }) };
   }
 

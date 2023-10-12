@@ -2,12 +2,13 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Favorite, Like, Marker, Post, Profile, Relationship, Reply, User, WebSession } from "./app";
+import { Favorite, Like, Marker, Post, Profile, Relationship, Reply, Tag, User, WebSession } from "./app";
 // don't know how to intergrate
 import { MarkerDoc, MarkerType } from "./concepts/marker";
 import { PostDoc, PostOptions, PostType } from "./concepts/post";
 import { ProfileDoc } from "./concepts/profile";
 import { ReplyType } from "./concepts/reply";
+import { TagDoc } from "./concepts/tag";
 import { UserDoc } from "./concepts/user";
 import { WebSessionDoc } from "./concepts/websession";
 import Responses from "./responses";
@@ -87,9 +88,9 @@ class Routes {
 
   // Create Profile for a User by Username
   @Router.post("/users/:username/profile")
-  async createProfileByUsername(username: string, nickname: string, email: string) {
+  async createProfileByUsername(username: string, nickname: string, email: string, headshotUrl?: string, identity?: string[], role?: string) {
     const id = (await User.getUserByUsername(username))._id;
-    const created = await Profile.create(id, nickname, email);
+    const created = await Profile.create(id, nickname, email, headshotUrl, identity, role);
     return { msg: created.msg, profile: await created.profile };
   }
 
@@ -113,7 +114,7 @@ class Routes {
   @Router.get("/posts")
   // get posts can search by author, title, timeframe and tags
   // now it has many ifs, will try to make it more modularized
-  async getPosts(author?: string, title?: string, tags?: string[]) {
+  async getPosts(author?: string, title?: string) {
     const filter: PostFilter = {};
 
     if (author) {
@@ -125,19 +126,15 @@ class Routes {
       filter.title = title;
     }
 
-    if (tags && tags.length) {
-      filter.tags = { $in: tags };
-    }
-
     const posts = await Post.getPosts(filter);
 
     return Responses.posts(posts);
   }
 
   @Router.post("/posts")
-  async createPost(session: WebSessionDoc, title: string, content: string, type?: PostType, options?: PostOptions) {
-    const user = WebSession.getUser(session);
-    const created = await Post.create(user, title, content, type || "article", options);
+  async createPost(session: WebSessionDoc, title: string, content: string, visibility: string, type?: PostType, options?: PostOptions) {
+    const author = WebSession.getUser(session);
+    const created = await Post.create(author, title, content, visibility, type || "article", options);
     return { msg: created.msg, post: await Responses.post(created.post) };
   }
 
@@ -166,8 +163,8 @@ class Routes {
   @Router.post("/posts/:_id/replies")
   async createReply(session: WebSessionDoc, content: string, replyType: ReplyType, _id: ObjectId) {
     console.log("createReply, relatedPost=", _id);
-    const user = WebSession.getUser(session);
-    const created = await Reply.create(user, content, replyType || "comment", _id);
+    const author = WebSession.getUser(session);
+    const created = await Reply.create(author, content, replyType || "comment", _id);
     return { msg: created.msg, reply: created.reply };
   }
 
@@ -523,16 +520,41 @@ class Routes {
     return { count: await Like.getLikeCount("reply", replyId) };
   }
 
-  // Tag routes
+  // Tags routes
 
-  @Router.get("/posts/:_id/:tag")
-  async getPostsByTag(tag: string) {
-    return null;
+  @Router.get("/tags")
+  async getAllTags(query?: Filter<TagDoc>) {
+    return await Tag.getAllTags(query);
   }
 
-  @Router.get("/posts/replies/:tag")
-  async getRepliesByTag(tag: string) {
-    return null;
+  @Router.post("/tags")
+  async createTag(name: string) {
+    return await Tag.createTag(name);
+  }
+
+  @Router.patch("/tags/:tagId")
+  async updateTag(tagId: ObjectId, update: Partial<TagDoc>) {
+    return await Tag.updateTag(tagId, update);
+  }
+
+  @Router.delete("/tags/:tagId")
+  async deleteTag(tagId: ObjectId) {
+    return await Tag.deleteTag(tagId);
+  }
+
+  @Router.get("/tags/:tagId/items")
+  async getItemsByTagId(tagId: ObjectId) {
+    return await Tag.getTagsByItemId(tagId);
+  }
+
+  @Router.get("/tags/:itemId/tags")
+  async getTagsByItemId(itemID: ObjectId) {
+    return await Tag.getItemsByTagId(itemID);
+  }
+
+  @Router.post("/tags/:tagId/items/:itemId")
+  async assignTagToItem(tagId: ObjectId, itemId: ObjectId) {
+    return await Tag.assignTagToItem(tagId, itemId);
   }
 }
 

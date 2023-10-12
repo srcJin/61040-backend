@@ -7,6 +7,7 @@ import MarkerConcept from "./concepts/marker";
 import PostConcept from "./concepts/post";
 import ProfileConcept from "./concepts/profile";
 import ReplyConcept from "./concepts/reply";
+import TagConcept from "./concepts/tag";
 import UserConcept from "./concepts/user";
 import WebSessionConcept from "./concepts/websession";
 
@@ -21,3 +22,4 @@ export const Relationship = new RelationshipConcept();
 export const Favorite = new FavoriteConcept();
 export const Like = new LikeConcept();
 export const Marker = new MarkerConcept();
+export const Tag = new TagConcept();
