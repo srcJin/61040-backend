@@ -6,6 +6,8 @@ export type MarkerType = "User" | "POI";
 
 export interface MarkerDoc extends BaseDoc {
   location: [number, number]; // [lng, lat]
+  // this location belongs to the marker it self,
+  // it can be a processed coordinate of a user or object
   itemId: ObjectId; // This will be either a user ID or a POI ID based on the type
   type: MarkerType;
   info?: string; // info is optional, only for "POI" type
