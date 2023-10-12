@@ -56,38 +56,38 @@ const operations: operation[] = [
   },
   {
     name: "[Profile] Create User Profile by Username",
-    endpoint: "/api/users/:username/profile",
+    endpoint: "/api/profile/:username",
     method: "POST",
     fields: { username: "input", nickname: "input", email: "input", headshotUrl: "input", lastLocation: "input" },
   },
   {
     name: "[Profile] Get User Profile by Username",
-    endpoint: "/api/users/:username/profile",
+    endpoint: "/api/profile/:username",
     method: "GET",
     fields: { username: "input" },
   },
   {
     name: "[Profile] Update User Profile by Username",
-    endpoint: "/api/users/:username/profile",
+    endpoint: "/api/profile/:username",
     method: "PATCH",
     fields: { username: "input", update: { nickname: "input", email: "input" } },
   },
   {
     name: "[Profile] Delete User Profile by Username",
-    endpoint: "/api/users/:username/profile",
+    endpoint: "/api/profile/:username",
     method: "DELETE",
     fields: { username: "input" },
   },
   // useful apis for getting and update user location
   {
     name: "[Profile] Get User Location by Username",
-    endpoint: "/api/users/:username/location",
+    endpoint: "/api/profile/:username/location",
     method: "GET",
     fields: { username: "input" },
   },
   {
     name: "[Profile] Update User Location by Username",
-    endpoint: "/api/users/:username/location",
+    endpoint: "/api/profile/:username/location",
     method: "PATCH",
     fields: { username: "input", location: "input" },
   },
@@ -96,7 +96,7 @@ const operations: operation[] = [
     name: "[Post] Create Post",
     endpoint: "/api/posts",
     method: "POST",
-    fields: { title: "input", content: "input", postType: "input", options: { backgroundColor: "input" } },
+    fields: { title: "input", content: "input", postType: "input", options: { backgroundColor: "input", visibility: "input" } },
   },
   {
     name: "[Post] Get Posts (empty for all)",
@@ -119,50 +119,50 @@ const operations: operation[] = [
 
   {
     name: "[Reply] Create Reply on Post",
-    endpoint: "/api/posts/:id/replies",
+    endpoint: "/api/replies/:_postId",
     method: "POST",
     fields: { id: "input", content: "input", replyType: "input" },
   },
   {
     name: "[Reply] Get Replies by Post ID",
-    endpoint: "/api/posts/:id/replies",
+    endpoint: "/api/replies/:_postId",
     method: "GET",
     fields: { id: "input", replyType: "input" },
   },
   {
     name: "[Reply] Update Reply on Post",
-    endpoint: "/api/posts/:id/replies/:replyId",
+    endpoint: "/api/replies/:_postId/:_replyId",
     method: "PATCH",
     fields: { id: "input", replyId: "input", update: { content: "input", options: { backgroundColor: "input" } } },
   },
   {
     name: "[Reply] Delete Reply on Post",
-    endpoint: "/api/posts/:id/replies/:replyId",
+    endpoint: "/api/replies/:_postId/:_replyId",
     method: "DELETE",
     fields: { id: "input", replyId: "input" },
   },
   // Favorite related operations
   {
     name: "[Favorite] Add Post to Favorites",
-    endpoint: "/api/posts/:id/favorite",
+    endpoint: "/api/favorites/post/:_id",
     method: "POST",
     fields: { id: "input" },
   },
   {
     name: "[Favorite] Remove Post from Favorites",
-    endpoint: "/api/posts/:id/favorite",
+    endpoint: "/api/favorites/post/:_id",
     method: "DELETE",
     fields: { id: "input" },
   },
   {
     name: "[Favorite] Add Reply to Favorites",
-    endpoint: "/api/posts/:postId/replies/:replyId/favorite",
+    endpoint: "/api/favorites/reply/:_id",
     method: "POST",
     fields: { postId: "input", replyId: "input" },
   },
   {
     name: "[Favorite] Remove Reply from Favorites",
-    endpoint: "/api/posts/:postId/replies/:replyId/favorite",
+    endpoint: "/api/favorites/reply/:_id",
     method: "DELETE",
     fields: { postId: "input", replyId: "input" },
   },
@@ -175,45 +175,46 @@ const operations: operation[] = [
   // Like related operations
   {
     name: "[Like] Add Post to Likes",
-    endpoint: "/api/posts/:id/like",
+    endpoint: "/api/likes/post/:id",
     method: "POST",
     fields: { id: "input" },
   },
   {
     name: "[Like] Remove Post from Likes",
-    endpoint: "/api/posts/:id/like",
+    endpoint: "/api/likes/post/:id",
     method: "DELETE",
     fields: { id: "input" },
   },
   {
     name: "[Like] Add Reply to Likes",
-    endpoint: "/api/posts/:postId/replies/:replyId/like",
+    endpoint: "/api/likes/reply/:_id",
     method: "POST",
-    fields: { postId: "input", replyId: "input" },
+    fields: { _id: "input" },
   },
   {
     name: "[Like] Remove Reply from Likes",
-    endpoint: "/api/posts/:postId/replies/:replyId/like",
+    endpoint: "/api/likes/reply/:_id",
     method: "DELETE",
-    fields: { postId: "input", replyId: "input" },
+    fields: { _id: "input" },
   },
+  // Keep the other endpoints as they are since they were not provided in the router functions.
   {
     name: "[Like] Get All Liked Posts and Replies",
     endpoint: "/api/likes",
     method: "GET",
-    fields: {}, // No fields required to fetch all likes for a user
+    fields: {},
   },
   {
     name: "[Like] Get Like Count for a Post",
-    endpoint: "/api/posts/:id/like-count",
+    endpoint: "/api/likes/post/:id/like-count",
     method: "GET",
     fields: { id: "input" },
   },
   {
     name: "[Like] Get Like Count for a Reply",
-    endpoint: "/api/posts/:postId/replies/:replyId/like-count",
+    endpoint: "/api/likes/reply/:id/like-count",
     method: "GET",
-    fields: { postId: "input", replyId: "input" },
+    fields: { id: "input" },
   },
 
   // Relationship related operations
@@ -354,13 +355,13 @@ const operations: operation[] = [
   },
   {
     name: "[Map] Get Map State",
-    endpoint: "/map/state",
+    endpoint: "/api/map/state",
     method: "GET",
     fields: {},
   },
   {
     name: "[Map] Set Center Point",
-    endpoint: "/map/centerpoint",
+    endpoint: "/api/map/centerpoint",
     method: "PATCH",
     fields: {
       lng: "input",
@@ -369,7 +370,7 @@ const operations: operation[] = [
   },
   {
     name: "[Map] Set Zoom Level",
-    endpoint: "/map/zoomlevel",
+    endpoint: "/api/map/zoomlevel",
     method: "PATCH",
     fields: {
       zoom: "input",
@@ -377,7 +378,7 @@ const operations: operation[] = [
   },
   {
     name: "[Map] Add Layer",
-    endpoint: "/map/layer",
+    endpoint: "/api/map/layer",
     method: "POST",
     fields: {
       layer: "input",
@@ -385,15 +386,15 @@ const operations: operation[] = [
   },
   {
     name: "[Map] Remove Layer",
-    endpoint: "/map/layer",
+    endpoint: "/api/map/layer",
     method: "DELETE",
     fields: {
       layer: "input",
     },
   },
   {
-    name: "[Map] Set Theme",
-    endpoint: "/map/theme",
+    name: "[Map] like Theme",
+    endpoint: "/api/map/theme",
     method: "PATCH",
     fields: {
       theme: "input",

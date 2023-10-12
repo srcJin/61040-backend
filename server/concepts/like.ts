@@ -2,7 +2,8 @@ import { ObjectId } from "mongodb";
 import DocCollection, { BaseDoc } from "../framework/doc";
 import { NotAllowedError, NotFoundError } from "./errors";
 
-export type LikeType = "post" | "reply"; // Add more types as necessary
+// Don't know if this is a solution. Maybe it's better to calculate from all the posts and replies
+export type LikeType = "post" | "reply";
 
 export interface LikeDoc extends BaseDoc {
   user: ObjectId;

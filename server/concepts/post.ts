@@ -5,6 +5,7 @@ import { NotAllowedError, NotFoundError } from "./errors";
 
 export interface PostOptions {
   backgroundColor?: string;
+  visibility: string;
 }
 
 export type PostType = "article" | "quesiton" | "wiki";
@@ -13,7 +14,6 @@ export interface PostDoc extends BaseDoc {
   author: ObjectId;
   title: string;
   content: string;
-  visibility: string;
   postType: PostType; // Added type field
   options?: PostOptions;
 }
@@ -21,8 +21,8 @@ export interface PostDoc extends BaseDoc {
 export default class PostConcept {
   public readonly posts = new DocCollection<PostDoc>("posts");
 
-  async create(author: ObjectId, title: string, content: string, visibility?: string, postType?: PostType, options?: PostOptions) {
-    const _id = await this.posts.createOne({ author, title, content, visibility, postType, options }); // Added type to the creation
+  async create(author: ObjectId, title: string, content: string, postType?: PostType, options?: PostOptions) {
+    const _id = await this.posts.createOne({ author, title, content, postType, options }); // Added type to the creation
     const post = await this.posts.readOne({ _id });
     return { msg: "Post successfully created!", post };
   }
@@ -72,7 +72,7 @@ export default class PostConcept {
 
   private sanitizeUpdate(update: Partial<PostDoc>) {
     // Make sure the update cannot change the author.
-    const allowedUpdates = ["content", "options", "title", "visibility", "postType"]; // Added type to the allowed updates
+    const allowedUpdates = ["content", "options", "title", "postType"]; // Added type to the allowed updates
     for (const key in update) {
       if (!allowedUpdates.includes(key)) {
         throw new NotAllowedError(`Cannot update '${key}' field!`);
