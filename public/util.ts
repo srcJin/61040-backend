@@ -1,5 +1,5 @@
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-type InputTag = "input" | "textarea";
+type InputTag = "input" | "textarea" | "json";
 type Field = InputTag | { [key: string]: Field };
 type Fields = Record<string, Field>;
 
@@ -96,19 +96,19 @@ const operations: operation[] = [
     name: "[Post] Create Post",
     endpoint: "/api/posts",
     method: "POST",
-    fields: { title: "input", content: "input", tags: "input", options: { backgroundColor: "input" } },
+    fields: { title: "input", content: "input", postType: "input", options: { backgroundColor: "input" } },
   },
   {
     name: "[Post] Get Posts (empty for all)",
     endpoint: "/api/posts",
     method: "GET",
-    fields: { id: "input", author: "input", title: "input", tags: "input" },
+    fields: { id: "input", author: "input", title: "input", tags: "input", postType: "input" },
   },
   {
     name: "[Post] Update Post",
     endpoint: "/api/posts/:id",
     method: "PATCH",
-    fields: { id: "input", update: { title: "input", content: "input", tags: "input", options: { backgroundColor: "input" } } },
+    fields: { id: "input", update: { title: "input", content: "input", postType: "input", options: { backgroundColor: "input" } } },
   },
   {
     name: "[Post] Delete Post",
@@ -121,13 +121,13 @@ const operations: operation[] = [
     name: "[Reply] Create Reply on Post",
     endpoint: "/api/posts/:id/replies",
     method: "POST",
-    fields: { id: "input", content: "input" },
+    fields: { id: "input", content: "input", replyType: "input" },
   },
   {
     name: "[Reply] Get Replies by Post ID",
     endpoint: "/api/posts/:id/replies",
     method: "GET",
-    fields: { id: "input" },
+    fields: { id: "input", replyType: "input" },
   },
   {
     name: "[Reply] Update Reply on Post",

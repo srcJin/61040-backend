@@ -7,21 +7,23 @@ export interface ReplyOptions {
   backgroundColor?: string;
 }
 
+export type ReplyType = "comment" | "answer";
+
 export interface ReplyDoc extends BaseDoc {
   author: ObjectId;
   // replies does not have a title
+  replyType: ReplyType; // Added type field
   content: string;
   relatedPost: ObjectId; // different from post, reply has a related post
-  tags?: string[];
   options?: ReplyOptions;
 }
 
 export default class ReplyConcept {
   public readonly replys = new DocCollection<ReplyDoc>("replys");
 
-  async create(author: ObjectId, content: string, relatedPost: ObjectId, options?: ReplyOptions) {
+  async create(author: ObjectId, content: string, replyType: ReplyType, relatedPost: ObjectId, options?: ReplyOptions) {
     console.log("Creating reply...");
-    const _id = await this.replys.createOne({ author, content, relatedPost, options });
+    const _id = await this.replys.createOne({ author, content, replyType, relatedPost, options });
     console.log("Created reply with ID:", _id);
     const reply = await this.replys.readOne({ _id });
     console.log("Fetched reply:", reply);

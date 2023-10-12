@@ -7,19 +7,21 @@ export interface PostOptions {
   backgroundColor?: string;
 }
 
+export type PostType = "article" | "quesiton" | "wiki";
+
 export interface PostDoc extends BaseDoc {
   author: ObjectId;
   title: string;
   content: string;
-  // tags?: string[]; // keep tag a separate concpet, not mix them
+  postType: PostType; // Added type field
   options?: PostOptions;
 }
 
 export default class PostConcept {
   public readonly posts = new DocCollection<PostDoc>("posts");
 
-  async create(author: ObjectId, title: string, content: string, tags?: string[], options?: PostOptions) {
-    const _id = await this.posts.createOne({ author, title, content, options });
+  async create(author: ObjectId, title: string, content: string, postType: PostType, options?: PostOptions) {
+    const _id = await this.posts.createOne({ author, title, content, postType, options }); // Added type to the creation
     const post = await this.posts.readOne({ _id });
     return { msg: "Post successfully created!", post };
   }
@@ -35,10 +37,18 @@ export default class PostConcept {
     return await this.getPosts({ author });
   }
 
+  // a shortcut method to return posts type by id
+  async getPostType(_id: ObjectId): Promise<PostType> {
+    const post = await this.posts.readOne({ _id });
+    if (!post) {
+      throw new NotFoundError(`Post ${_id} does not exist!`);
+    }
+    return post.postType;
+  }
+
   async update(_id: ObjectId, update: Partial<PostDoc>) {
     this.sanitizeUpdate(update);
     await this.posts.updateOne({ _id }, update);
-    // for testing, can delete after deploy
     const post = await this.posts.readOne({ _id });
     return { msg: "Post successfully updated!", post };
   }
@@ -61,7 +71,7 @@ export default class PostConcept {
 
   private sanitizeUpdate(update: Partial<PostDoc>) {
     // Make sure the update cannot change the author.
-    const allowedUpdates = ["content", "options", "title"];
+    const allowedUpdates = ["content", "options", "title", "type"]; // Added type to the allowed updates
     for (const key in update) {
       if (!allowedUpdates.includes(key)) {
         throw new NotAllowedError(`Cannot update '${key}' field!`);

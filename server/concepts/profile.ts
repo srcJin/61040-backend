@@ -7,16 +7,14 @@ export interface ProfileDoc extends BaseDoc {
   user: ObjectId;
   nickname: string;
   email: string;
-  dateJoined: Date;
-  dateUpdated: Date;
   headshotUrl?: string;
   // identity is a set of strings that can be "beekeeper", "customer", "expert" or "undefined"
   identity?: string[];
   // role is a string that can be "admin" or "user"
   role?: string;
-  // liked is a list of post ids that the user has
-  liked: ObjectId[];
-  favorite: ObjectId[];
+  // liked is a list of post ids that the user has, but it doesn't fit restful principle, so disabled
+  // liked: ObjectId[];
+  // favorite: ObjectId[];
   // lastLocation is a coordinate pair [longitude, latitude]
   lastLocation: number[];
 }
@@ -31,7 +29,7 @@ export default class ProfileConcept {
       throw new NotAllowedError("User already has a profile!");
     }
 
-    const _id = await this.profiles.createOne({ user, nickname, email, dateJoined: new Date(), dateUpdated: new Date(), liked: [], favorite: [], lastLocation: [0, 0] });
+    const _id = await this.profiles.createOne({ user, nickname, email, lastLocation: [0, 0] });
     return { msg: "Profile successfully created!", profile: await this.profiles.readOne({ _id }) };
   }
 

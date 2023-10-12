@@ -5,9 +5,9 @@ import { Router, getExpressRouter } from "./framework/router";
 import { Favorite, Like, Marker, Post, Profile, Relationship, Reply, User, WebSession } from "./app";
 // don't know how to intergrate
 import { MarkerDoc, MarkerType } from "./concepts/marker";
-
-import { PostDoc, PostOptions } from "./concepts/post";
+import { PostDoc, PostOptions, PostType } from "./concepts/post";
 import { ProfileDoc } from "./concepts/profile";
+import { ReplyType } from "./concepts/reply";
 import { UserDoc } from "./concepts/user";
 import { WebSessionDoc } from "./concepts/websession";
 import Responses from "./responses";
@@ -135,9 +135,9 @@ class Routes {
   }
 
   @Router.post("/posts")
-  async createPost(session: WebSessionDoc, title: string, content: string, tags?: string[], options?: PostOptions) {
+  async createPost(session: WebSessionDoc, title: string, content: string, type?: PostType, options?: PostOptions) {
     const user = WebSession.getUser(session);
-    const created = await Post.create(user, title, content, tags, options);
+    const created = await Post.create(user, title, content, type || "article", options);
     return { msg: created.msg, post: await Responses.post(created.post) };
   }
 
@@ -164,10 +164,10 @@ class Routes {
   }
 
   @Router.post("/posts/:_id/replies")
-  async createReply(session: WebSessionDoc, content: string, _id: ObjectId) {
+  async createReply(session: WebSessionDoc, content: string, replyType: ReplyType, _id: ObjectId) {
     console.log("createReply, relatedPost=", _id);
     const user = WebSession.getUser(session);
-    const created = await Reply.create(user, content, _id);
+    const created = await Reply.create(user, content, replyType || "comment", _id);
     return { msg: created.msg, reply: created.reply };
   }
 
